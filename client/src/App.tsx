@@ -1,0 +1,28 @@
+import { Api, AreaChart } from '@mui/icons-material';
+import { Outlet } from 'react-router';
+import { ReactRouterAppProvider } from '@toolpad/core/react-router';
+import type { Navigation, Branding } from '@toolpad/core/AppProvider';
+
+const NAVIGATION: Navigation = [
+  {
+    title: 'Анализ',
+    icon: <AreaChart />,
+  },
+  {
+    title: 'API',
+    icon: <Api />,
+    segment: 'api',
+  }
+];
+
+const BRANDING: Branding = {
+  title: '',
+};
+
+export default function App() {
+  return (
+    <ReactRouterAppProvider navigation={NAVIGATION} branding={BRANDING} >
+      <Outlet />
+    </ReactRouterAppProvider>
+  );
+}

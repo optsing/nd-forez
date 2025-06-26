@@ -1,0 +1,32 @@
+{
+  "name": "core-vite",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@mui/icons-material": "^7",
+    "@mui/material": "^7",
+    "@toolpad/core": "^0.14.0",
+    "chart.js": "^4.5.0",
+    "chartjs-plugin-annotation": "^3.1.0",
+    "chartjs-plugin-zoom": "^2.2.0",
+    "react": "^19.0.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^19.0.0",
+    "react-router": "^7"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.2",
+    "typescript": "^5",
+    "vite": "^5.4.8"
+  },
+  "packageManager": "pnpm@10.12.3+sha512.467df2c586056165580ad6dfb54ceaad94c5a30f80893ebdec5a44c5aa73c205ae4a5bb9d5ed6bb84ea7c249ece786642bbb49d06a307df218d03da41c317417"
+}
