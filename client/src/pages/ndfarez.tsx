@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from 'react';
-import { Button, Typography, CircularProgress, Fab, Box, Tabs, Tab } from '@mui/material';
+import { Typography, CircularProgress, Fab, Box, Tabs, Tab, Snackbar, Alert } from '@mui/material';
 import { Science, UploadFile } from '@mui/icons-material';
 import GenLibChart from '../components/genlib-chart';
 import StandartChart from '../components/standart-chart';
@@ -9,12 +9,17 @@ import GenLibAnalyzedChart from '../components/genlib-analyzed-chart';
 import StandartAnalyzedTable from '../components/standart-analyzed-table';
 import GenLibAnalyzedTable from '../components/genlib-analyzed-table';
 
+
+const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : '';
+
+
 const FileUploadPage: React.FC = () => {
     const [parsing, setParsing] = useState<boolean>(false);
     const [parseResult, setParseResult] = useState<ParsedData | null>(null);
     const [analyzing, setAnalysing] = useState<boolean>(false);
     const [analyzeResult, setAnalyzeResult] = useState<AnalyzeResult | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
 
     const [currentTab, setCurrentTab] = useState<number>(0);
 
@@ -36,7 +41,7 @@ const FileUploadPage: React.FC = () => {
         try {
             const formData = new FormData();
             files.forEach((file) => formData.append('files', file));
-            const response = await fetch('http://localhost:8000/parse', {
+            const response = await fetch(API_URL + '/api/parse', {
                 method: 'POST',
                 body: formData,
             });
@@ -51,6 +56,7 @@ const FileUploadPage: React.FC = () => {
         } catch (err) {
             console.error(err);
             setError('Ошибка при парсинге');
+            setIsAlertOpen(true);
         } finally {
             setParsing(false);
         }
@@ -68,7 +74,7 @@ const FileUploadPage: React.FC = () => {
         setError(null);
 
         try {
-            const response = await fetch('http://localhost:8000/analyze', {
+            const response = await fetch(API_URL + '/api/analyze', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -86,10 +92,13 @@ const FileUploadPage: React.FC = () => {
         } catch (error) {
             console.error('Analysis error:', error);
             setError('Ошибка при анализе')
+            setIsAlertOpen(true);
         } finally {
             setAnalysing(false);
         }
     };
+
+    const handleAlertClose = () => setIsAlertOpen(false);
 
     return (
         <>
@@ -169,6 +178,12 @@ const FileUploadPage: React.FC = () => {
                     Анализ
                 </Fab>
             </Box>
+
+            <Snackbar open={isAlertOpen} autoHideDuration={6000} onClose={handleAlertClose}>
+                <Alert severity='error' variant="filled" onClose={handleAlertClose}>
+                    {error}
+                </Alert>
+            </Snackbar>
         </>
     );
 };

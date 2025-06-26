@@ -2,6 +2,7 @@ import { Api, AreaChart } from '@mui/icons-material';
 import { Outlet } from 'react-router';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import type { Navigation, Branding } from '@toolpad/core/AppProvider';
+import Logo from './components/logo';
 
 const NAVIGATION: Navigation = [
   {
@@ -11,12 +12,13 @@ const NAVIGATION: Navigation = [
   {
     title: 'API',
     icon: <Api />,
-    segment: 'api',
+    segment: 'api-doc',
   }
 ];
 
 const BRANDING: Branding = {
   title: '',
+  logo: <Logo />,
 };
 
 export default function App() {

@@ -1,4 +1,4 @@
-import { useColorScheme } from "@mui/material";
+import { useColorScheme, useMediaQuery } from "@mui/material";
 import { ChartOptions } from "chart.js";
 import { AnnotationOptions } from "chartjs-plugin-annotation";
 import { useMemo } from "react";
@@ -23,9 +23,10 @@ interface UseChartOptionsProps {
 }
 
 export function UseChartColors(): ChartColors {
+    const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
     const scheme = useColorScheme();
     return useMemo(() => {
-        const isDark = scheme.mode == 'dark';
+        const isDark = scheme.mode === 'dark' || (scheme.mode === 'system' && prefersDarkMode);
         return {
             textColor: isDark ? '#fff' : '#333',
             gridColor: isDark ? '#444' : '#bbb',
@@ -34,7 +35,7 @@ export function UseChartColors(): ChartColors {
             secondaryLineColor: isDark ? '#D50000' : '#FF5252',
             secondaryLineBackgroundColor: isDark ? '#FF1744' : '#FF8A80',
         };
-    }, [scheme]);
+    }, [scheme.mode, prefersDarkMode]);
 }
 
 export function useChartOptions(chartColors: ChartColors, { yTitle, annotations }: UseChartOptionsProps = { }): ChartOptions<'line'> {

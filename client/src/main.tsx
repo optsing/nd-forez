@@ -5,6 +5,8 @@ import App from './App';
 import Layout from './layouts/dashboard';
 import NDFarezPage from './pages/ndfarez';
 
+import "@fontsource/roboto";
+
 import {
     Chart as ChartJS,
     LineElement,
@@ -45,7 +47,7 @@ const router = createBrowserRouter([
             Component: NDFarezPage,
           },
           {
-            path: '/api',
+            path: '/api-doc',
             Component: OpenAPIPage,
           },
         ],
