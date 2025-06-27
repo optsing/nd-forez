@@ -1,17 +1,39 @@
+from datetime import datetime
 from pydantic import BaseModel
 
 
-class SizeStandart(BaseModel):
+class SizeStandardDescription(BaseModel):
     title: str
+    filename: str
+
+
+class SizeStandard(SizeStandardDescription):
     data: list[int]
     sizes: list[float]
     concentrations: list[float]
     release_times: list[int]
 
 
-class GenLib(BaseModel):
+class GenLibDescription(BaseModel):
     title: str
+    filename: str
+
+
+class GenLib(GenLibDescription):
     data: list[int]
+
+
+class ParseResult(BaseModel):
+    id: int | None
+    size_standards: list[SizeStandard]
+    gen_libs: list[GenLib]
+
+
+class ParseResultDescription(BaseModel):
+    id: int
+    size_standards: list[SizeStandardDescription]
+    gen_libs: list[GenLibDescription]
+    created_at: datetime
 
 
 class AnalyzeResultData(BaseModel):
@@ -61,10 +83,5 @@ class AnalyzeResult(BaseModel):
 
 
 class AnalyzeInput(BaseModel):
-    size_standart: SizeStandart
-    gen_libs: list[GenLib]
-
-
-class ParsedData(BaseModel):
-    size_standarts: list[SizeStandart]
+    size_standard: SizeStandard
     gen_libs: list[GenLib]

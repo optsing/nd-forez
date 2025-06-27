@@ -1,21 +1,45 @@
-import React, { useState, ChangeEvent } from 'react';
+import React, { useState, ChangeEvent, useEffect } from 'react';
 import { Typography, CircularProgress, Fab, Box, Tabs, Tab, Snackbar, Alert } from '@mui/material';
 import { Science, UploadFile } from '@mui/icons-material';
 import GenLibChart from '../components/genlib-chart';
-import StandartChart from '../components/standart-chart';
-import { AnalyzeInput, AnalyzeResult, ParsedData } from '../models/models';
-import StandartAnalyzedChart from '../components/standart-analyzed-chart';
+import StandardChart from '../components/standard-chart';
+import { AnalyzeInput, AnalyzeResult, ParseResult } from '../models/models';
+import StandardAnalyzedChart from '../components/standard-analyzed-chart';
 import GenLibAnalyzedChart from '../components/genlib-analyzed-chart';
-import StandartAnalyzedTable from '../components/standart-analyzed-table';
+import StandardAnalyzedTable from '../components/standard-analyzed-table';
 import GenLibAnalyzedTable from '../components/genlib-analyzed-table';
+import {
+    Chart as ChartJS,
+    LineElement,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    Tooltip,
+    Filler,
+    Legend,
+} from 'chart.js';
+import Zoom from 'chartjs-plugin-zoom';
+import Annotation from 'chartjs-plugin-annotation';
+import { API_URL } from '../consts';
+import { useSearchParams } from 'react-router';
 
 
-const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : '';
+ChartJS.register(
+    LineElement,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    Tooltip,
+    Filler,
+    Legend,
+    Zoom,
+    Annotation,
+);
 
 
 const FileUploadPage: React.FC = () => {
     const [parsing, setParsing] = useState<boolean>(false);
-    const [parseResult, setParseResult] = useState<ParsedData | null>(null);
+    const [parseResult, setParseResult] = useState<ParseResult | null>(null);
     const [analyzing, setAnalysing] = useState<boolean>(false);
     const [analyzeResult, setAnalyzeResult] = useState<AnalyzeResult | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -26,6 +50,42 @@ const FileUploadPage: React.FC = () => {
     const [selectedStandard, setSelectedStandard] = useState(0);
     const [selectedGenLibs, setSelectedGenLibs] = useState<boolean[]>([]);
     const [selectedGenLibsAnalyzed, setSelectedGenLibsAnalyzed] = useState(0);
+
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    useEffect(() => {
+        const fn = async (id: number) => {
+            setCurrentTab(0);
+            setParsing(true);
+            setParseResult(null);
+            setAnalyzeResult(null);
+            setError(null);
+
+            try {
+                const response = await fetch(API_URL + `/api/parse-results/${id}`, {
+                    method: 'GET',
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+
+                const data: ParseResult = await response.json();
+                setParseResult(data);
+                setSelectedGenLibs(new Array(data.gen_libs.length).fill(true));
+            } catch (err) {
+                console.error(err);
+                setError('Ошибка при получении данных');
+                setIsAlertOpen(true);
+            } finally {
+                setParsing(false);
+            }
+        }
+        const id = searchParams.get('id')
+        if (id) {
+            fn(Number.parseInt(id));
+        }
+    }, []);
 
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
         if (parsing) return;
@@ -50,9 +110,13 @@ const FileUploadPage: React.FC = () => {
                 throw new Error(`HTTP error ${response.status}`);
             }
 
-            const data: ParsedData = await response.json();
+            const data: ParseResult = await response.json();
             setParseResult(data);
             setSelectedGenLibs(new Array(data.gen_libs.length).fill(true));
+            if (data.id) {
+                searchParams.append('id', data.id.toString());
+                setSearchParams(searchParams);
+            }
         } catch (err) {
             console.error(err);
             setError('Ошибка при парсинге');
@@ -65,7 +129,7 @@ const FileUploadPage: React.FC = () => {
     const handleAnalyzeClick = async () => {
         if (!parseResult || analyzing) return;
         const payload: AnalyzeInput = {
-            size_standart: parseResult.size_standarts[selectedStandard],
+            size_standard: parseResult.size_standards[selectedStandard],
             gen_libs: parseResult.gen_libs.filter((_, i) => selectedGenLibs[i]),
         };
 
@@ -111,8 +175,8 @@ const FileUploadPage: React.FC = () => {
 
             {currentTab == 0 && (parseResult
                 ? <Box margin={3} mb={10}>
-                    {parseResult.size_standarts.length > 0 && <StandartChart
-                        sizeStandarts={parseResult.size_standarts}
+                    {parseResult.size_standards.length > 0 && <StandardChart
+                        sizeStandards={parseResult.size_standards}
                         selectedStandard={selectedStandard}
                         setSelectedStandard={setSelectedStandard}
                     />}
@@ -123,16 +187,16 @@ const FileUploadPage: React.FC = () => {
                     />}
                 </Box>
                 : (!parsing && <Box margin={3} mb={10} display='flex' alignItems='center' justifyContent='center' height='100vh'>
-                    <Typography variant='h4'>Выберите файлы для просмотра</Typography>
+                    <Typography variant='h4' textAlign='center'>Выберите файлы для просмотра</Typography>
                 </Box>)
             )}
 
             {currentTab == 1 && analyzeResult && (
                 <Box margin={3} mb={10}>
-                    <StandartAnalyzedChart
+                    <StandardAnalyzedChart
                         analyzeResult={analyzeResult}
                     />
-                    <StandartAnalyzedTable
+                    <StandardAnalyzedTable
                         analyzeResult={analyzeResult}
                     />
                     {selectedGenLibsAnalyzed < analyzeResult.genlib_data.length &&
@@ -172,7 +236,7 @@ const FileUploadPage: React.FC = () => {
                     variant="extended"
                     color="secondary"
                     onClick={handleAnalyzeClick}
-                    disabled={!parseResult || parseResult.size_standarts.length === 0}
+                    disabled={!parseResult || parseResult.size_standards.length === 0}
                 >
                     {analyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Science sx={{ mr: 1 }} />}
                     Анализ

@@ -59,7 +59,7 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
 
         # Проверяем, если обе точки ниже 90% от основного пика (если обе лежат ниже, значит это отдельный пик, а не часть локальных минимумов)
         if left_value < 0.9 * max_value and right_value < 0.9 * max_value:
-            # Добавляем в массив standart_pks максимальное значение
+            # Добавляем в массив standard_pks максимальное значение
             one_pks = np.append(one_pks, max_value)
             selected_peak_locations[i] = peak_idx  # заменяем на найденный максимум
     lonely_pks = np.where(np.isin(denoised_data, one_pks))[0]

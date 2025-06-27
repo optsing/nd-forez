@@ -16,7 +16,7 @@ interface TableRow {
     led: number;
 }
 
-const StandartAnalyzedTable: React.FC<Props> = ({
+const StandardAnalyzedTable: React.FC<Props> = ({
     analyzeResult,
 }) => {
     const headers: string[] = ["Длина фрагментов, пн", "Концентрация, нг/мкл", "Молярность, нмоль/л", "Время выхода, с", "Площадь * 10^7"];
@@ -59,4 +59,4 @@ const StandartAnalyzedTable: React.FC<Props> = ({
     );
 }
 
-export default StandartAnalyzedTable;
+export default StandardAnalyzedTable;

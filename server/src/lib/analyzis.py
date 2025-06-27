@@ -1,11 +1,11 @@
 from lib.sdfind import SDFind
 from lib.glfind import GLFind
 
-from models.models import SizeStandart, GenLib, AnalyzeResult, AnalyzeResultData
+from models.models import SizeStandard, GenLib, AnalyzeResult, AnalyzeResultData
 
 
-def analyze(size_standart: SizeStandart, gen_libs: list[GenLib]) -> AnalyzeResult:
-    [peak, led_area, led_conc, ZrRef, SD_molarity, liz_fit, locs_fit] = SDFind(size_standart.data, size_standart.sizes, size_standart.release_times, size_standart.concentrations)
+def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResult:
+    [peak, led_area, led_conc, ZrRef, SD_molarity, liz_fit, locs_fit] = SDFind(size_standard.data, size_standard.sizes, size_standard.release_times, size_standard.concentrations)
 
     print(peak, led_area, led_conc, ZrRef, SD_molarity)
 
@@ -17,7 +17,7 @@ def analyze(size_standart: SizeStandart, gen_libs: list[GenLib]) -> AnalyzeResul
             hpx, unr, stp, main_corr, gl_areas, peaks_corr, library_peaks, area_corr, molarity,
             max_lib_peak, max_lib_value, total_lib_area, total_lib_conc, total_lib_molarity,
             x_fill, y_fill, x_lib_fill, y_lib_fill
-        ) = GLFind(gl_d.data, peak, size_standart.sizes, size_standart.concentrations)
+        ) = GLFind(gl_d.data, peak, size_standard.sizes, size_standard.concentrations)
         results.append(AnalyzeResultData(
             title=gl_d.title,
             t_main=t_main.tolist(),
@@ -52,7 +52,7 @@ def analyze(size_standart: SizeStandart, gen_libs: list[GenLib]) -> AnalyzeResul
             y_Lib_fill=y_lib_fill.tolist(),
         ))
     return AnalyzeResult(
-        title=size_standart.title,
+        title=size_standard.title,
         peak=peak.tolist(),
         led_area=led_area.tolist(),
         led_conc=led_conc.tolist(),
@@ -60,7 +60,7 @@ def analyze(size_standart: SizeStandart, gen_libs: list[GenLib]) -> AnalyzeResul
         SD_molarity=SD_molarity.tolist(),
         liz_fit=liz_fit.tolist(),
         locs_fit=locs_fit.tolist(),
-        sizes=size_standart.sizes,
-        concentrations=size_standart.concentrations,
+        sizes=size_standard.sizes,
+        concentrations=size_standard.concentrations,
         genlib_data=results,
     )

@@ -1,37 +1,12 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
 
-from lib.parsing import parse_file
-from lib.analyzis import analyze
+from api import apiRoute
+from database import create_db_and_tables
 
-from models.models import ParsedData, AnalyzeInput, AnalyzeResult, SizeStandart, GenLib
-
-
-api = FastAPI(title='Farez API')
-
-
-@api.post("/parse")
-async def parse_endpoint(files: List[UploadFile] = File(...)) -> ParsedData:
-    size_standarts: list[SizeStandart] = []
-    gen_libs: list[GenLib] = []
-    for file in files:
-        content = await file.read()
-        print(f"Received {file.filename}: {len(content)} bytes")
-        s, g = parse_file(content)
-        size_standarts += s
-        gen_libs += g
-    return ParsedData(
-        size_standarts=size_standarts,
-        gen_libs=gen_libs,
-    )
-
-
-@api.post('/analyze')
-async def analyze_endpoint(data: AnalyzeInput) -> AnalyzeResult:
-    return analyze(data.size_standart, data.gen_libs)
+create_db_and_tables()
 
 
 app = FastAPI(title='Farez')
@@ -42,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount('/api', api)
+app.mount('/api', apiRoute)
 app.mount('/assets', StaticFiles(directory='assets', html=True))
 
 

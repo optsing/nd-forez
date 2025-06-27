@@ -8,35 +8,35 @@ import {
     FormControl,
 } from '@mui/material';
 import { ChartData, } from 'chart.js';
-import { SizeStandart } from '../models/models';
+import { SizeStandard } from '../models/models';
 import { UseChartColors, useChartOptions } from '../helpers/helpers';
 import ChartContainer from './chart-container';
 import ChartWithZoom from './chart-with-zoom';
 
 
 interface Props {
-    sizeStandarts: SizeStandart[];
+    sizeStandards: SizeStandard[];
     selectedStandard: number;
     setSelectedStandard: Dispatch<SetStateAction<number>>;
 }
 
-const StandartChart: React.FC<Props> = ({
-    sizeStandarts,
+const StandardChart: React.FC<Props> = ({
+    sizeStandards,
     selectedStandard,
     setSelectedStandard,
 }) => {
     const chartColors = UseChartColors();
     const chartOptions = useChartOptions(chartColors);
 
-    const [standartChartData, setStandartChartData] = useState<ChartData<'line'> | null>(null);
+    const [standardChartData, setStandardChartData] = useState<ChartData<'line'> | null>(null);
 
     useEffect(() => {
-        if (sizeStandarts.length === 0) return;
-        setStandartChartData({
+        if (sizeStandards.length === 0) return;
+        setStandardChartData({
             datasets: [
                 {
-                    label: sizeStandarts[selectedStandard].title,
-                    data: sizeStandarts[selectedStandard].data.map((y, x) => ({ x, y })),
+                    label: sizeStandards[selectedStandard].title,
+                    data: sizeStandards[selectedStandard].data.map((y, x) => ({ x, y })),
                     borderColor: chartColors.primaryLineColor,
                     backgroundColor: chartColors.primaryLineBackgroudColor,
                     borderWidth: 2,
@@ -45,7 +45,7 @@ const StandartChart: React.FC<Props> = ({
                 }
             ],
         });
-    }, [selectedStandard, sizeStandarts, chartColors])
+    }, [selectedStandard, sizeStandards, chartColors])
 
     return (
         <>
@@ -53,13 +53,13 @@ const StandartChart: React.FC<Props> = ({
                 Стандарты длин
             </Typography>
 
-            {standartChartData && <ChartContainer
+            {standardChartData && <ChartContainer
                 sidebar={<FormControl component="fieldset">
                     <RadioGroup
                         value={selectedStandard}
                         onChange={(e) => setSelectedStandard(parseInt(e.target.value))}
                     >
-                        {sizeStandarts.map((s, i) => (
+                        {sizeStandards.map((s, i) => (
                             <FormControlLabel
                                 key={i}
                                 value={i}
@@ -72,11 +72,11 @@ const StandartChart: React.FC<Props> = ({
             >
                 <ChartWithZoom
                     options={chartOptions}
-                    data={standartChartData}
+                    data={standardChartData}
                 />
             </ChartContainer>}
         </>
     );
 };
 
-export default StandartChart;
+export default StandardChart;

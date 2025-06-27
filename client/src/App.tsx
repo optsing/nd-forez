@@ -1,4 +1,4 @@
-import { Api, AreaChart } from '@mui/icons-material';
+import { Api, AreaChart, History } from '@mui/icons-material';
 import { Outlet } from 'react-router';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import type { Navigation, Branding } from '@toolpad/core/AppProvider';
@@ -8,6 +8,11 @@ const NAVIGATION: Navigation = [
   {
     title: 'Анализ',
     icon: <AreaChart />,
+  },
+  {
+    title: 'Недавние',
+    icon: <History />,
+    segment: 'recent',
   },
   {
     title: 'API',

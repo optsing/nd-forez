@@ -10,7 +10,7 @@ const ChartContainer: React.FC<PropsWithChildren<Props>> = ({
     children,
 }) => {
     const theme = useTheme();
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
 
     return (
         <Box
@@ -26,7 +26,9 @@ const ChartContainer: React.FC<PropsWithChildren<Props>> = ({
                 {sidebar}
             </Box>
             <Box
+                flexShrink={1}
                 flexGrow={1}
+                minWidth={0}
                 width="100%"
                 height="480px"
                 position="relative"

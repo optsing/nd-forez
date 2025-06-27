@@ -39,13 +39,13 @@ def analyze_frf_files() -> None:
             raw_title: str = root.findtext('Title')  # type: ignore
             type_value = root.findtext('Type')
             if type_value == 'AllelicLadder':
-                size_standart_node = root.find('./SizeStandard/Sizes')
-                if size_standart_node is not None:
+                size_standard_node = root.find('./SizeStandard/Sizes')
+                if size_standard_node is not None:
                     sizes: list[float] = []
                     concentrations: list[float] = []
                     release_times: list[int] = []
 
-                    size_elements = size_standart_node.findall('double')
+                    size_elements = size_standard_node.findall('double')
                     for size_elem in size_elements:
                         sizes.append(float(size_elem.text))  # type: ignore
                         concentrations.append(float(size_elem.get('Concentration')))  # type: ignore

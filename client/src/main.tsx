@@ -1,37 +1,12 @@
+import "@fontsource/roboto";
+
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import App from './App';
 import Layout from './layouts/dashboard';
-import NDFarezPage from './pages/ndfarez';
-
-import "@fontsource/roboto";
-
-import {
-    Chart as ChartJS,
-    LineElement,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    Tooltip,
-    Filler,
-    Legend,
-} from 'chart.js';
-import Zoom from 'chartjs-plugin-zoom';
-import Annotation from 'chartjs-plugin-annotation';
 import OpenAPIPage from './pages/openapi';
-
-ChartJS.register(
-    LineElement,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    Tooltip,
-    Filler,
-    Legend,
-    Zoom,
-    Annotation,
-);
+import RecentPage from "./pages/recent";
 
 
 const router = createBrowserRouter([
@@ -43,8 +18,12 @@ const router = createBrowserRouter([
         Component: Layout,
         children: [
           {
-            path: '',
-            Component: NDFarezPage,
+            path: '/',
+            Component: React.lazy(() => import('./pages/ndfarez')),
+          },
+          {
+            path: '/recent',
+            Component: RecentPage,
           },
           {
             path: '/api-doc',

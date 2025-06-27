@@ -6,11 +6,12 @@
 */
 
 export interface AnalyzeInput {
-  size_standart: SizeStandart;
+  size_standard: SizeStandard;
   gen_libs: GenLib[];
 }
-export interface SizeStandart {
+export interface SizeStandard {
   title: string;
+  filename: string;
   data: number[];
   sizes: number[];
   concentrations: number[];
@@ -18,6 +19,7 @@ export interface SizeStandart {
 }
 export interface GenLib {
   title: string;
+  filename: string;
   data: number[];
 }
 export interface AnalyzeResult {
@@ -64,7 +66,22 @@ export interface AnalyzeResultData {
   x_Lib_fill: number[];
   y_Lib_fill: number[];
 }
-export interface ParsedData {
-  size_standarts: SizeStandart[];
+export interface GenLibDescription {
+  title: string;
+  filename: string;
+}
+export interface ParseResult {
+  id: number | null;
+  size_standards: SizeStandard[];
   gen_libs: GenLib[];
+}
+export interface ParseResultDescription {
+  id: number;
+  size_standards: SizeStandardDescription[];
+  gen_libs: GenLibDescription[];
+  created_at: string;
+}
+export interface SizeStandardDescription {
+  title: string;
+  filename: string;
 }

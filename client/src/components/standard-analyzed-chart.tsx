@@ -18,7 +18,7 @@ interface Props {
     analyzeResult: AnalyzeResult
 }
 
-const StandartAnalyzedChart: React.FC<Props> = ({
+const StandardAnalyzedChart: React.FC<Props> = ({
     analyzeResult,
 }) => {
     const [selected, setSelected] = useState<number>(0);
@@ -145,4 +145,4 @@ const StandartAnalyzedChart: React.FC<Props> = ({
     );
 };
 
-export default StandartAnalyzedChart;
+export default StandardAnalyzedChart;
