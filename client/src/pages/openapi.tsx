@@ -1,4 +1,4 @@
-import { API_URL } from "../consts";
+import { API_URL } from "../api";
 
 
 const OpenAPIPage: React.FC = () => {

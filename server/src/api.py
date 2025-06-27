@@ -8,7 +8,7 @@ from models.models import AnalyzeInput, AnalyzeResult, GenLib, GenLibDescription
 from models.database import GenLibDB, ParseResultDB, SizeStandardDB
 
 
-apiRoute = FastAPI(title='Farez API')
+apiRoute = FastAPI(title='ND Forez API')
 
 
 @apiRoute.post("/parse")
@@ -22,6 +22,9 @@ async def do_parse(files: list[UploadFile] = File(...), session: Session = Depen
         s, g = parse_file(content, file.filename or 'unknown')
         standards += s
         genlibs += g
+
+    if not standards and not genlibs:
+        raise HTTPException(status_code=422, detail='В файлах отсутствуют данные')
 
     standards_db: list[SizeStandardDB] = []
     genlibs_db: list[GenLibDB] = []
@@ -58,7 +61,10 @@ async def do_parse(files: list[UploadFile] = File(...), session: Session = Depen
 
 @apiRoute.post('/analyze')
 def do_analyze(data: AnalyzeInput) -> AnalyzeResult:
-    return analyze(data.size_standard, data.gen_libs)
+    try:
+        return analyze(data.size_standard, data.gen_libs)
+    except Exception as ex:
+        raise HTTPException(status_code=422, detail=str(ex))
 
 
 @apiRoute.get('/parse-results')
@@ -115,6 +121,8 @@ def get_parse_result(result_id: int, session: Session = Depends(get_session)) ->
             filename=g.filename,
             data=g.data,
         ))
+    if not standards and not genlibs:
+        raise HTTPException(status_code=422, detail='В файлах отсутствуют данные')
     return ParseResult(
         id=r.id,
         size_standards=standards,

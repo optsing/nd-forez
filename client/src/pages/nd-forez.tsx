@@ -1,9 +1,9 @@
 import React, { useState, ChangeEvent, useEffect } from 'react';
-import { Typography, CircularProgress, Fab, Box, Tabs, Tab, Snackbar, Alert } from '@mui/material';
+import { Typography, CircularProgress, Fab, Box, Tabs, Tab } from '@mui/material';
 import { Science, UploadFile } from '@mui/icons-material';
 import GenLibChart from '../components/genlib-chart';
 import StandardChart from '../components/standard-chart';
-import { AnalyzeInput, AnalyzeResult, ParseResult } from '../models/models';
+import { AnalyzeResult, ParseResult } from '../models/models';
 import StandardAnalyzedChart from '../components/standard-analyzed-chart';
 import GenLibAnalyzedChart from '../components/genlib-analyzed-chart';
 import StandardAnalyzedTable from '../components/standard-analyzed-table';
@@ -20,8 +20,9 @@ import {
 } from 'chart.js';
 import Zoom from 'chartjs-plugin-zoom';
 import Annotation from 'chartjs-plugin-annotation';
-import { API_URL } from '../consts';
 import { useSearchParams } from 'react-router';
+import { analyzeData as PostAnalyze, getParseResult, parseFiles as PostParseFiles, getErrorMessage } from '../api';
+import { useAlert } from '../context/alert-context';
 
 
 ChartJS.register(
@@ -38,12 +39,11 @@ ChartJS.register(
 
 
 const FileUploadPage: React.FC = () => {
-    const [parsing, setParsing] = useState<boolean>(false);
+    const [isParsing, setIsParsing] = useState<boolean>(false);
     const [parseResult, setParseResult] = useState<ParseResult | null>(null);
-    const [analyzing, setAnalysing] = useState<boolean>(false);
+    const [isAnalyzing, setIsAnalysing] = useState<boolean>(false);
     const [analyzeResult, setAnalyzeResult] = useState<AnalyzeResult | null>(null);
-    const [error, setError] = useState<string | null>(null);
-    const [isAlertOpen, setIsAlertOpen] = useState<boolean>(false);
+    const showAlert = useAlert();
 
     const [currentTab, setCurrentTab] = useState<number>(0);
 
@@ -56,29 +56,24 @@ const FileUploadPage: React.FC = () => {
     useEffect(() => {
         const fn = async (id: number) => {
             setCurrentTab(0);
-            setParsing(true);
+            setIsParsing(true);
             setParseResult(null);
             setAnalyzeResult(null);
-            setError(null);
 
             try {
-                const response = await fetch(API_URL + `/api/parse-results/${id}`, {
-                    method: 'GET',
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error ${response.status}`);
+                const result = await getParseResult(id);
+                setParseResult(result);
+                setSelectedStandard(0);
+                setSelectedGenLibs(new Array(result.gen_libs.length).fill(true));
+                if (result.id) {
+                    searchParams.set('id', result.id.toString());
+                    setSearchParams(searchParams);
                 }
-
-                const data: ParseResult = await response.json();
-                setParseResult(data);
-                setSelectedGenLibs(new Array(data.gen_libs.length).fill(true));
             } catch (err) {
                 console.error(err);
-                setError('Ошибка при получении данных');
-                setIsAlertOpen(true);
+                showAlert(`Ошибка при получении данных: ${getErrorMessage(err)}`, 'error');
             } finally {
-                setParsing(false);
+                setIsParsing(false);
             }
         }
         const id = searchParams.get('id')
@@ -88,83 +83,53 @@ const FileUploadPage: React.FC = () => {
     }, []);
 
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        if (parsing) return;
+        if (isParsing) return;
         const files = event.target.files ? Array.from(event.target.files) : [];
         if (files.length === 0) return;
 
         setCurrentTab(0);
-        setParsing(true);
+        setIsParsing(true);
         setParseResult(null);
         setAnalyzeResult(null);
-        setError(null);
 
         try {
-            const formData = new FormData();
-            files.forEach((file) => formData.append('files', file));
-            const response = await fetch(API_URL + '/api/parse', {
-                method: 'POST',
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-            }
-
-            const data: ParseResult = await response.json();
-            setParseResult(data);
+            const result = await PostParseFiles(files);
+            setParseResult(result);
             setSelectedStandard(0);
-            setSelectedGenLibs(new Array(data.gen_libs.length).fill(true));
-            if (data.id) {
-                searchParams.append('id', data.id.toString());
+            setSelectedGenLibs(new Array(result.gen_libs.length).fill(true));
+            if (result.id) {
+                searchParams.set('id', result.id.toString());
                 setSearchParams(searchParams);
             }
         } catch (err) {
             console.error(err);
-            setError('Ошибка при парсинге');
-            setIsAlertOpen(true);
+            showAlert(`Ошибка при парсинге: ${getErrorMessage(err)}`, 'error');
         } finally {
-            setParsing(false);
+            setIsParsing(false);
         }
     };
 
     const handleAnalyzeClick = async () => {
-        if (!parseResult || analyzing) return;
-        const payload: AnalyzeInput = {
-            size_standard: parseResult.size_standards[selectedStandard],
-            gen_libs: parseResult.gen_libs.filter((_, i) => selectedGenLibs[i]),
-        };
+        if (!parseResult || isAnalyzing) return;
 
-        setAnalysing(true);
+        setIsAnalysing(true);
         setAnalyzeResult(null);
-        setError(null);
-
         try {
-            const response = await fetch(API_URL + '/api/analyze', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
+            const result = await PostAnalyze({
+                size_standard: parseResult.size_standards[selectedStandard],
+                gen_libs: parseResult.gen_libs.filter((_, i) => selectedGenLibs[i]),
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error ${response.status}`);
-            }
-
-            const result: AnalyzeResult = await response.json();
             setAnalyzeResult(result);
             setSelectedGenLibsAnalyzed(0);
             setCurrentTab(1);
-        } catch (error) {
-            console.error('Analysis error:', error);
-            setError('Ошибка при анализе')
-            setIsAlertOpen(true);
+        } catch (err) {
+            console.error('Analysis error:', err);
+            showAlert(`Ошибка при анализе: ${getErrorMessage(err)}`, 'error');
         } finally {
-            setAnalysing(false);
+            setIsAnalysing(false);
         }
     };
-
-    const handleAlertClose = () => setIsAlertOpen(false);
 
     return (
         <>
@@ -193,7 +158,7 @@ const FileUploadPage: React.FC = () => {
                         setSelectedGenLibs={setSelectedGenLibs}
                     />}
                 </Box>
-                : (!parsing && <Box margin={3} mb={10} display='flex' alignItems='center' justifyContent='center' height='100vh'>
+                : (!isParsing && <Box margin={3} mb={10} display='flex' alignItems='center' justifyContent='center' height='100vh'>
                     <Typography variant='h4' textAlign='center'>Выберите файлы для просмотра</Typography>
                 </Box>)
             )}
@@ -206,7 +171,7 @@ const FileUploadPage: React.FC = () => {
                     <StandardAnalyzedTable
                         analyzeResult={analyzeResult}
                     />
-                    {selectedGenLibsAnalyzed < analyzeResult.genlib_data.length &&
+                    {analyzeResult.genlib_data.length > 0 &&
                         <>
                             <GenLibAnalyzedChart
                                 analyzeResultData={analyzeResult.genlib_data}
@@ -235,7 +200,7 @@ const FileUploadPage: React.FC = () => {
                     color="primary"
                     component='label'
                 >
-                    {parsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <UploadFile />}
+                    {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <UploadFile />}
                     Выбрать файлы
                     <input type="file" hidden multiple onChange={handleFileChange} />
                 </Fab>
@@ -245,16 +210,10 @@ const FileUploadPage: React.FC = () => {
                     onClick={handleAnalyzeClick}
                     disabled={!parseResult || parseResult.size_standards.length === 0}
                 >
-                    {analyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Science sx={{ mr: 1 }} />}
+                    {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Science sx={{ mr: 1 }} />}
                     Анализ
                 </Fab>
             </Box>
-
-            <Snackbar open={isAlertOpen} autoHideDuration={6000} onClose={handleAlertClose}>
-                <Alert severity='error' variant="filled" onClose={handleAlertClose}>
-                    {error}
-                </Alert>
-            </Snackbar>
         </>
     );
 };

@@ -6,7 +6,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import App from './App';
 import Layout from './layouts/dashboard';
 import OpenAPIPage from './pages/openapi';
-import RecentPage from "./pages/recent";
+import RecentPage from "./pages/recent-views";
 
 
 const router = createBrowserRouter([
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: '/',
-            Component: React.lazy(() => import('./pages/ndfarez')),
+            Component: React.lazy(() => import('./pages/nd-forez')),
           },
           {
             path: '/recent',

@@ -9,7 +9,7 @@ from database import create_db_and_tables
 create_db_and_tables()
 
 
-app = FastAPI(title='Farez')
+app = FastAPI(title='ND Forez')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
