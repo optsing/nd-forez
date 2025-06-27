@@ -31,7 +31,7 @@ const GenLibAnalyzedTable: React.FC<Props> = ({
             area_corr: round(source.areaCorr[i]),
             molarity: round(source.molarity[i]),
             library_peaks: round(source.library_peaks[i]),
-            gl_areas: round(source.GLAreas[i]),
+            gl_areas: round(source.GLAreas[i] * 1e-7),
         });
     }
 
@@ -41,7 +41,7 @@ const GenLibAnalyzedTable: React.FC<Props> = ({
         area_corr: round(source.totalLibConc),
         molarity: round(source.totalLibMolarity),
         library_peaks: round(source.maxLibValue),
-        gl_areas: round(source.totalLibArea),
+        gl_areas: round(source.totalLibArea * 1e-7),
     }];
 
     return (

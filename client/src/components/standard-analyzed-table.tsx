@@ -28,7 +28,7 @@ const StandardAnalyzedTable: React.FC<Props> = ({
             concentration: analyzeResult.concentrations[i],
             molarity: round(analyzeResult.SD_molarity[i]),
             peak: analyzeResult.peak[i],
-            led: round(analyzeResult.led_area[i]),
+            led: round(analyzeResult.led_area[i] / 1e7),
         });
     }
 

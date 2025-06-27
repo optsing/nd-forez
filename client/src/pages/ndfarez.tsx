@@ -112,6 +112,7 @@ const FileUploadPage: React.FC = () => {
 
             const data: ParseResult = await response.json();
             setParseResult(data);
+            setSelectedStandard(0);
             setSelectedGenLibs(new Array(data.gen_libs.length).fill(true));
             if (data.id) {
                 searchParams.append('id', data.id.toString());
@@ -152,6 +153,7 @@ const FileUploadPage: React.FC = () => {
 
             const result: AnalyzeResult = await response.json();
             setAnalyzeResult(result);
+            setSelectedGenLibsAnalyzed(0);
             setCurrentTab(1);
         } catch (error) {
             console.error('Analysis error:', error);

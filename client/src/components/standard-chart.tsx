@@ -35,7 +35,7 @@ const StandardChart: React.FC<Props> = ({
         const standard = sizeStandards[selectedStandard];
         setStandardChartData({
             datasets: [
-                CreateLineDataset(standard.title, standard.data.map((y, x) => ({ x, y })), chartColors.primary),
+                CreateLineDataset(standard.title, standard.data.map((y, x) => ({ x, y: y * 1e-6 })), chartColors.primary),
             ],
         });
     }, [selectedStandard, sizeStandards, chartColors])

@@ -32,12 +32,12 @@ const StandardAnalyzedChart: React.FC<Props> = ({
 
     useEffect(() => {
         if (selected === 0) {
-            const peakPoints = analyzeResult.peak.map(x => ({ x, y: analyzeResult.ZrRef[x] }));
+            const peakPoints = analyzeResult.peak.map(x => ({ x, y: analyzeResult.ZrRef[x] * 1e-6 }));
             const annotations = CreateChartVerticalLines(peakPoints, chartColors, chartColors.secondary);
-            setYTitle('Интенсивность');
+            setYTitle('Интенсивность * 10^6');
             setChartData({
                 datasets: [
-                    CreateLineDataset('Интенсивность', analyzeResult.ZrRef.map((y, x) => ({ x, y })), chartColors.primary),
+                    CreateLineDataset('Интенсивность', analyzeResult.ZrRef.map((y, x) => ({ x, y: y * 1e-6 })), chartColors.primary),
                     CreatePointDataset('Пики', peakPoints, chartColors.secondary),
                 ]
             });

@@ -114,7 +114,6 @@ def SDFind(data: list[int], in_sizes: list[float], release_times: list[int], con
         selected_peaks = np.flip(selected_peaks)
 
         frg_area = np_areas / (np.flip(sizes) ** 2 / 100)
-        np_areas = np_areas * 1e-7
 
         sd_molarity = ((np.array(concentrations) * 1e-3) / (649 * np.flip(sizes))) * 1e9
 

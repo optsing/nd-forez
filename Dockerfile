@@ -33,5 +33,6 @@ COPY --from=builder-client /app/dist/index.html .
 COPY ./server/src .
 
 EXPOSE 80
+VOLUME [ "/app/database" ]
 
 CMD ["/opt/venv/bin/uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]

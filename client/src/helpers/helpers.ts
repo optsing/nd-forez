@@ -92,7 +92,7 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
                 y: {
                     title: {
                         display: true,
-                        text: yTitle || 'Интенсивность',
+                        text: yTitle || 'Интенсивность * 10^6',
                         color: chartColors.textColor,
                     },
                     type: 'linear',
@@ -107,6 +107,9 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
                 },
             },
             plugins: {
+                tooltip: {
+                    intersect: false,
+                },
                 legend: {
                     labels: {
                         color: chartColors.textColor,

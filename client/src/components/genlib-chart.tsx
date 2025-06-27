@@ -42,7 +42,7 @@ const GenLibChart: React.FC<Props> = ({
         if (genLibs.length === 0) return;
         setGenLibChartData({
             datasets: genLibs.filter((_, i) => selectedGenLibs[i])
-                .map(g => CreateLineDataset(g.title, g.data.map((y, x) => ({ x, y })), chartColors.primary)),
+                .map(g => CreateLineDataset(g.title, g.data.map((y, x) => ({ x, y: y * 1e-6 })), chartColors.primary)),
         });
     }, [selectedGenLibs, genLibs, chartColors])
 

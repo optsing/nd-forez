@@ -452,6 +452,7 @@ def GLFind(data: list[int], peak, sizes: list[float], concentrations: list[float
     hpx = np.round(lib_peaks_corr)
     unr = np.round(unrecognized_peaks_corr)
     stp = np.array([sizes[0], sizes[-1]])
+
     return (
         t_main, denoised_data, st_peaks, st_length, t_unrecognized_peaks, unrecognized_peaks,
         lib_length, lib_peak_locations, t_final_locations, final_lib_local_minimums,
