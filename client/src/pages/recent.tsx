@@ -61,13 +61,13 @@ const RecentPage: React.FC = () => {
     return (
         <Box m={3}>
             <Typography variant='h5' textAlign='center' gutterBottom>Последние открытые файлы</Typography>
-            <List component={Paper}>
+            {recent && (recent.length > 0 ? <List component={Paper}>
                 {recent?.map(item => (
                     <ListItemButton key={item.id} href={`/?id=${item.id}`}>
                         <ListItemText primary={item.title} secondary={item.subtitle} />
                     </ListItemButton>
                 ))}
-            </List>
+            </List> : <Typography variant='h6' textAlign='center' gutterBottom>Нет недавно открытых файлов</Typography>)}
             <Snackbar open={isAlertOpen} autoHideDuration={6000} onClose={handleAlertClose}>
                 <Alert severity='error' variant="filled" onClose={handleAlertClose}>
                     {error}

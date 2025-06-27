@@ -221,7 +221,7 @@ def GLFind(data: list[int], peak, sizes: list[float], concentrations: list[float
     # Этот блок приводит электрофореграмму геномной библиотеки и стандарта
     # длин в одну шкалу (выравнивает по ширине и высоте)
     px = np.polyfit(st_length, st_peaks, 1)  # выравнивание по ширине
-    t = np.arange(1, len(denoised_data) + 1)
+    t = np.arange(0, len(denoised_data))
     t_main = np.polyval(px, t)
 
     x_fill_1 = np.array([])

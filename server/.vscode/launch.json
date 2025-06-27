@@ -9,11 +9,12 @@
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
+            "cwd": "${workspaceFolder}/src",
             "args": [
                 "main:app",
                 "--reload"
             ],
-            "jinja": true
+            "jinja": true,
         }
     ]
 }

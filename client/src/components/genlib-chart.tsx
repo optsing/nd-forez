@@ -7,7 +7,7 @@ import {
 } from '@mui/material';
 import { ChartData } from 'chart.js';
 import { GenLib } from '../models/models';
-import { UseChartColors, useChartOptions } from '../helpers/helpers';
+import { CreateLineDataset, useChartColors, useChartOptions } from '../helpers/helpers';
 import ChartContainer from './chart-container';
 import ChartWithZoom from './chart-with-zoom';
 
@@ -22,7 +22,7 @@ const GenLibChart: React.FC<Props> = ({
     selectedGenLibs,
     setSelectedGenLibs,
 }) => {
-    const chartColors = UseChartColors();
+    const chartColors = useChartColors();
     const chartOptions = useChartOptions(chartColors);
 
     const [genLibChartData, setGenLibChartData] = useState<ChartData<'line'> | null>(null);
@@ -41,15 +41,8 @@ const GenLibChart: React.FC<Props> = ({
     useEffect(() => {
         if (genLibs.length === 0) return;
         setGenLibChartData({
-            datasets: genLibs.filter((_, i) => selectedGenLibs[i]).map(g => ({
-                label: g.title,
-                data: g.data.map((y, x) => ({ x, y })),
-                borderColor: chartColors.primaryLineColor,
-                backgroundColor: chartColors.primaryLineBackgroudColor,
-                pointBackgroundColor: 'rgba(0, 0, 0, 0)',
-                pointBorderColor: 'rgba(0, 0, 0, 0)',
-                borderWidth: 2,
-            })),
+            datasets: genLibs.filter((_, i) => selectedGenLibs[i])
+                .map(g => CreateLineDataset(g.title, g.data.map((y, x) => ({ x, y })), chartColors.primary)),
         });
     }, [selectedGenLibs, genLibs, chartColors])
 

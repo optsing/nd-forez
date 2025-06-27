@@ -167,7 +167,12 @@ const FileUploadPage: React.FC = () => {
     return (
         <>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                <Tabs value={currentTab} onChange={(e, value) => setCurrentTab(value)} aria-label="basic tabs example">
+                <Tabs
+                    value={currentTab}
+                    onChange={(e, value) => setCurrentTab(value)}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                >
                     <Tab label="Просмотр данных" />
                     <Tab label="Результаты анализа" disabled={!analyzeResult} />
                 </Tabs>

@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import { ChartData, } from 'chart.js';
 import { SizeStandard } from '../models/models';
-import { UseChartColors, useChartOptions } from '../helpers/helpers';
+import { CreateLineDataset, useChartColors, useChartOptions } from '../helpers/helpers';
 import ChartContainer from './chart-container';
 import ChartWithZoom from './chart-with-zoom';
 
@@ -25,24 +25,17 @@ const StandardChart: React.FC<Props> = ({
     selectedStandard,
     setSelectedStandard,
 }) => {
-    const chartColors = UseChartColors();
+    const chartColors = useChartColors();
     const chartOptions = useChartOptions(chartColors);
 
     const [standardChartData, setStandardChartData] = useState<ChartData<'line'> | null>(null);
 
     useEffect(() => {
         if (sizeStandards.length === 0) return;
+        const standard = sizeStandards[selectedStandard];
         setStandardChartData({
             datasets: [
-                {
-                    label: sizeStandards[selectedStandard].title,
-                    data: sizeStandards[selectedStandard].data.map((y, x) => ({ x, y })),
-                    borderColor: chartColors.primaryLineColor,
-                    backgroundColor: chartColors.primaryLineBackgroudColor,
-                    borderWidth: 2,
-                    pointBackgroundColor: 'rgba(0, 0, 0, 0)',
-                    pointBorderColor: 'rgba(0, 0, 0, 0)',
-                }
+                CreateLineDataset(standard.title, standard.data.map((y, x) => ({ x, y })), chartColors.primary),
             ],
         });
     }, [selectedStandard, sizeStandards, chartColors])
