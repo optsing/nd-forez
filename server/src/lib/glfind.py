@@ -1,11 +1,12 @@
 from typing import Any
 import numpy as np
 from lib.matlab.msbackadj import msbackadj
+from lib.matlab.round import matlab_round
 from scipy.signal import savgol_filter, find_peaks
 from scipy.integrate import trapezoid, quad
 
 
-def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[float]) -> Any:
+def GLFind(data: list[int] | list[float], peak, sizes: list[float], concentrations: list[float]) -> Any:
     raw_data = np.array(data)
     # 1. Выбор первых 50 значений как шума
     noise = raw_data[0:50]
@@ -36,31 +37,86 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
     ]
 
     if len(selected_peak_locations) == 0:
-        raise ValueError('Пики не были найдены')
+        raise ValueError('Пики геномной библиотеки не были найдены')
 
-    one_pks = np.array([])
-    for i, peak_idx in enumerate(selected_peak_locations):
-        left_idx = peak_idx - 4
-        right_idx = peak_idx + 4
+    lonely_pks, selected_peak_locations = dl_peaks(selected_peak_locations, denoised_data)
 
-        # Ищем максимум между текующими границами
-        max_value = np.max(denoised_data[left_idx:right_idx])  # это по ОУ
-        peak_idx = np.where(np.isin(denoised_data, max_value))[0][0]  # это перевод в ОХ
+    #     allPeakLocations = selectedPeakLocations;
 
-        # Находим границы от текущего максимального значения +-4
-        left_idx = peak_idx - 4
-        right_idx = peak_idx + 4
+    # i = 1;
+    # if length(allPeakLocations) == length(lonely_pks)
+    #     while i < length(lonely_pks)
+    #         current_peak = lonely_pks(i);
+    #         next_peak = lonely_pks(i+1);
 
-        # Значения слева и справа
-        left_value = denoised_data[left_idx]
-        right_value = denoised_data[right_idx]
+    #         % Проверка, есть ли пики между текущим и следующим lonely_pks
+    #         in_between = allPeakLocations > current_peak & allPeakLocations < next_peak;
 
-        # Проверяем, если обе точки ниже 90% от основного пика (если обе лежат ниже, значит это отдельный пик, а не часть локальных минимумов)
-        if left_value < 0.9 * max_value and right_value < 0.9 * max_value:
-            # Добавляем в массив standard_pks максимальное значение
-            one_pks = np.append(one_pks, max_value)
-            selected_peak_locations[i] = peak_idx  # заменяем на найденный максимум
-    lonely_pks = np.where(np.isin(denoised_data, one_pks))[0]
+    #         if ~any(in_between) % если НЕ найдены локальные пики ГБ, значит текующие пики лежат слева или справа от ГБ
+    #             % Границы для текущего и следующего пика
+    #             left1 = current_peak - 4; right1 = current_peak + 4;
+    #             left2 = next_peak - 4;    right2 = next_peak + 4;
+
+    #             % Защита от выхода за границы
+    #             left1 = max(1, left1); right1 = min(length(denoised_data), right1);
+    #             left2 = max(1, left2); right2 = min(length(denoised_data), right2);
+
+    #             % Площади под сигналом
+    #             area1 = trapz(left1:right1, denoised_data(left1:right1));
+    #             area2 = trapz(left2:right2, denoised_data(left2:right2));
+
+    #             % Определяем меньшую из площадей и удаляем соответствующий пик
+    #             if area1 > area2
+    #                 lonely_pks(i+1) = [];  % удаляем следующий пик
+    #             else
+    #                 lonely_pks(i) = [];    % удаляем текущий пик
+    #             end
+
+    #             % Обновляем: начинаем сначала
+    #             i = 1;
+    #             continue;
+    #         end
+    #         i = i + 1;
+    #     end
+    # else
+    #     while i < length(lonely_pks)
+    #         current_peak = lonely_pks(i);
+    #         next_peak = lonely_pks(i+1);
+
+    #         % Проверка, есть ли пики между текущим и следующим lonely_pks
+    #         in_between = allPeakLocations > current_peak & allPeakLocations < next_peak;
+
+    #         if ~any(in_between) % если НЕ найдены локальные пики ГБ, значит текующие пики лежат слева или справа от ГБ
+    #             % Границы для текущего и следующего пика
+    #             left1 = current_peak - 4; right1 = current_peak + 4;
+    #             left2 = next_peak - 4;    right2 = next_peak + 4;
+
+    #             % Защита от выхода за границы
+    #             left1 = max(1, left1); right1 = min(length(denoised_data), right1);
+    #             left2 = max(1, left2); right2 = min(length(denoised_data), right2);
+
+    #             % Площади под сигналом
+    #             area1 = trapz(left1:right1, denoised_data(left1:right1));
+    #             area2 = trapz(left2:right2, denoised_data(left2:right2));
+
+    #             % Определяем меньшую из площадей и удаляем соответствующий пик
+    #             if area1 > area2
+    #                 idx = find(allPeakLocations == lonely_pks(i+1));
+    #                 allPeakLocations(idx) = [];
+    #                 lonely_pks(i+1) = [];  % удаляем следующий пик
+    #             else
+    #                 idx = find(allPeakLocations == lonely_pks(i));
+    #                 allPeakLocations(idx) = [];
+    #                 lonely_pks(i) = [];    % удаляем текущий пик
+    #             end
+
+    #             % Обновляем: начинаем сначала
+    #             i = 1;
+    #             continue;
+    #         end
+    #         i = i + 1;
+    #     end
+    # end
 
     # 3. Нахождение минимумов электрофореграммы
     flip = -denoised_data
@@ -75,9 +131,9 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
     min_peak_locations = min_peak_locations[~below_threshold]  # удаляем из массива min_peakLocations все миниуммы, которые лежат ниже порога (оставляем только основные)
 
     # Объединение найденных пиков и точек пересечения
-    crossings2 = np.where(np.diff(denoised_data > 0))[0]
+    crossings = np.where(np.diff(denoised_data > 0))[0]
 
-    complete_peaks_locations = np.union1d(min_peak_locations, crossings2)
+    complete_peaks_locations = np.union1d(min_peak_locations, crossings)
 
     # 4. Калибровка данных
     # Инициализируйте переменные
@@ -92,6 +148,7 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
 
     final_lib_local_minimums = np.array([])
 
+    st_length = np.array([])
     st_areas = np.array([])
 
     st_peaks = np.array([peak[0], peak[-1]])
@@ -145,30 +202,36 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
             # Обновляем st_length
             st_length = [st_length[0], best_value]
 
-    # TODO % В случае, если не было найдено ни одного реперного пика
-    # if length(st_length) ~= 2
-    #         % Открываем диалоговое окно
-    #         choice = questdlg('Реперные пики не найдены.', ...
-    #                             'Ошибка анализа', ...
-    #                             'Завершить анализ', 'Ввести вручную', 'Ввести вручную');
-    #         % Обрабатываем выбор пользователя
-    #         switch choice
-    #             case 'Завершить анализ'
-    #                 % Завершить выполнение анализа
-    #                 disp('Анализ завершен пользователем.');
-    #                 return;
-    #             case 'Ввести вручную'
-    #                 [st_length] = plotFigure(denoised_data, st_length);
-    #                 selectedPeakLocations = vertcat(selectedPeakLocations, st_length);
-    #                 selectedPeakLocations = unique(sort(selectedPeakLocations));
-    #         end
-    # end
+    if len(st_length) != 2:
+        # TODO Добавить выбор реперных пиков
+        # Мы обрабатывает несколько генных библиотек в одном анализе и для каждой может потребоваться свой выбор
+        # Может быть стоит обрабатывать только одну библиотеку за раз?
+        raise ValueError('Реперные пики не найдены.')
+        # % В случае, если не было найдено ни одного реперного пика
+        # if length(st_length) ~= 2
+        #         % Открываем диалоговое окно
+        #         choice = questdlg('Реперные пики не найдены.', ...
+        #                             'Ошибка анализа', ...
+        #                             'Завершить анализ', 'Ввести вручную', 'Ввести вручную');
+        #         % Обрабатываем выбор пользователя
+        #         switch choice
+        #             case 'Завершить анализ'
+        #                 % Завершить выполнение анализа
+        #                 disp('Анализ завершен пользователем.');
+        #                 return;
+        #             case 'Ввести вручную'
+        #                 [st_length] = plotFigure(denoised_data, st_length);
+        #                 selectedPeakLocations = vertcat(selectedPeakLocations, st_length);
+        #                 selectedPeakLocations = unique(sort(selectedPeakLocations));
+        #         end
+        # end
 
     pre_unrecognized_peaks = np.unique(pre_unrecognized_peaks)
     pre_unrecognized_peaks = pre_unrecognized_peaks[~np.isin(pre_unrecognized_peaks, st_length)]  # если найденный неопознанный пик отнесён к реперному, то он удаляется из массива
 
     min_st_length = []
 
+    # Проверка минимумов (массив complete_Peaks_Locations): если ближайший минимум дальше, чем 10, то переназначаем все минимумы текущего пика на 7
     for i in range(len(st_length)):
         # Ищем ближайшее значение в массиве complete_Peaks_Locations
         current_value = st_length[i]
@@ -185,7 +248,7 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
             min_st_length.append(current_value - 7)
             min_st_length.append(current_value + 7)
 
-    # Объединяем массивы
+    # Объединяем массивы, удаляем дубликаты и сортируем массив
     complete_peaks_locations = np.union1d(complete_peaks_locations, min_st_length)
     # На случай, если репер и неопознанный пик находятся слишком близко (расстояние < 10) - иначе впоследствии программа не понимает,
     # какой минимум между ними должен быть (их минимумы накладываются)
@@ -297,14 +360,18 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
                     lib_peak_locations = np.append(lib_peak_locations, indices_max_value)
 
             lib_peak_locations = np.unique(lib_peak_locations)
+
             # На случай, если алгоритм посчитал тонкие ГБ (типа фаикс) в качестве большой библиотеки
             diff_values = np.abs(denoised_data[lib_peak_locations.astype(int)] - max_value_lib)  # вычитаем из найденных пиков ГБ максимальный пик
+
             # Определяем порог 20% от maxLibValue - расстояние (высота) между пиками не должно быть больше, чем 20% от
             # максимального пика: максимум на 100, минимум на 50, расстояние между ними 50 > 20 - это плохо (+1 на следующем шагу);
             # минимум на 90, расстояние 10 < 20 - хорошо (0)
             threshold = 0.2 * max_value_lib
+
             # Проверяем, какие значения превышают порог и заполняем check_LibPeaks
             check_lib_peaks = diff_values > threshold  # ищем пики, которые расположены слишком низко (ниже, чем 20% от максимального пика): если больше порога, то возвращается 1 (находим их количество)
+
             # Считаем разницу между длиной LibPeakLocations и количеством "плохих" значений
             diff_count = len(lib_peak_locations) - np.sum(check_lib_peaks)
 
@@ -329,25 +396,34 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
 
     # Если ГБ гладкая/фаикс/слишком низкая
     if len(hidden_lib_peak_locations) == 0:
-        rest_peaks = np.copy(selected_peak_locations)
+        rest_peaks = np.copy(selected_peak_locations)  # Собираем все найденные пики
+        # Удаляем значения из rest_peaks, которые попадают в диапазон реперных пиков
         rest_peaks = rest_peaks[~((rest_peaks >= (st_length[0] - 10)) & (rest_peaks <= (st_length[0] + 10)) | (rest_peaks >= (st_length[1] - 10)) & (rest_peaks <= (st_length[1] + 10)))]
 
-        rest_peaks_locations = np.concatenate((complete_peaks_locations, all_local_minimums))  # TODO Not sorted?
+        # Инициализация массива для хранения площадей
+        rest_peaks_locations = np.union1d(complete_peaks_locations, all_local_minimums)
 
+        # Проходим по парам пиков
         i = 0
         while i < len(rest_peaks_locations) - 1:
+            # Индексы точек между текущей парой пиков
             indices_between_peaks = (rest_peaks >= rest_peaks_locations[i]) & (rest_peaks <= rest_peaks_locations[i + 1])
+            # Точки между пиками
             peaks_between = rest_peaks[indices_between_peaks]
 
             if len(peaks_between) > 1:
-                new_peak = np.mean(peaks_between[:2])
-                rest_peaks_locations = np.unique(np.append(rest_peaks_locations, new_peak))
+                new_peak = np.mean(peaks_between[:2])  # Среднее значение rest_peaks между двумя соседствующими пиками (минимум между двумя текущими значениями)
+                rest_peaks_locations = np.union1d(rest_peaks_locations, new_peak) # Добавляем новый минимум: если между текущими минимумами нашли несколько максимумов, добавляем новые минимумы, чтобы разделить эти максимумы
                 i -= 1
             elif len(peaks_between) == 1:
+                # Определяем границы текущей области
                 x_points = rest_peaks_locations[i:i + 2]
 
+                # Рассчитываем площади между пиками
                 for j in range(len(x_points) - 1):
                     x_range = np.arange(x_points[j], x_points[j + 1] + 1)
+
+                    # Интегрируем площадь под кривой
                     x_vals = np.arange(len(denoised_data))
 
                     def interp_func(x):
@@ -357,69 +433,98 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
 
             i += 1
 
+        # Находим индекс наибольшей площади
         max_index = np.argmax(rest_peaks_areas)
+
+        # Записываем соответствующий пик в LibPeakLocations
         lib_peak_locations = np.array([rest_peaks[max_index]])
 
+        # Находим минимумы, которые принадлежат найденному максимому
         start_index = max(rest_peaks_locations[rest_peaks_locations < lib_peak_locations])
         end_index = min(rest_peaks_locations[rest_peaks_locations > lib_peak_locations])
 
         hidden_lib_peak_locations, hidden_lib_areas, hidden_final_lib_local_minimums = hid_fun(
             denoised_data, start_index, end_index, hidden_lib_areas, lib_peak_locations)
 
+        # Определяем "неопознанные" пики и их площади
         unrecognized_peaks = np.copy(rest_peaks)
         unrec_areas = np.copy(rest_peaks_areas)
 
+        # Удаляем главный пик и его площадь из "неопознанных"
         unrecognized_peaks = np.delete(unrecognized_peaks, max_index)
         unrec_areas = np.delete(unrec_areas, max_index)
+
         final_lib_local_minimums = np.array([hidden_final_lib_local_minimums[0], hidden_final_lib_local_minimums[-1]])
 
-    hid_lib_length = np.polyval(px, hidden_lib_peak_locations)
+    hid_lib_length = np.polyval(px, hidden_lib_peak_locations)  # пересчёт по времени
     hid_lib_peaks_corr = np.polyval(sdc, hid_lib_length)
-    hid_one_area = hidden_lib_areas / (hid_lib_peaks_corr / 100)
-    hid_one_area_conc = np.polyval(a, hid_one_area)
-    hid_molarity = ((hid_one_area_conc * 1e-3) / (649 * hid_lib_peaks_corr)) * 1e9
+
+    hid_one_area = hidden_lib_areas / (hid_lib_peaks_corr / 100)  # пересчёт по длине
+    hid_one_area_conc = np.polyval(a, hid_one_area)  # находим концентрацию в нг/мкл
+    hid_molarity = ((hid_one_area_conc * 1e-3) / (649 * hid_lib_peaks_corr)) * 1e9  # в нмолях/л!
 
     lib_areas = np.array([])
     lib_one_area = np.array([])
     lib_one_area_conc = np.array([])
     lib_molarity = np.array([])
 
+    # Если ГБ содержит локальные пики и она была идентифицирована как
+    # ГБ (был найдет максимум и скрытые пики):
     if len(rest_peaks_areas) == 0:
+        # Проверка на то, лежат ли LibPeakLocations в пределах Hidden_LibPeakLocations: если нет, то удаляются
         check_lib_peak_locations = lib_peak_locations[(lib_peak_locations < hidden_lib_peak_locations[0]) | (lib_peak_locations > hidden_lib_peak_locations[-1])]
+        # Проверяем, если хотя бы одно значение лежит за границами
         if len(check_lib_peak_locations) > 0:
+            # Удаляем все элементы check_LibPeakLocations из LibPeakLocations
             lib_peak_locations = np.setdiff1d(lib_peak_locations, check_lib_peak_locations)
+            # Добавляем самое первое значение Hidden_LibPeakLocations в качестве первой границы
             if np.any(check_lib_peak_locations < hidden_lib_peak_locations[0]):
                 lib_peak_locations = np.insert(lib_peak_locations, 0, hidden_lib_peak_locations[0])
                 left_candidates = max(final_lib_local_minimums[final_lib_local_minimums < lib_peak_locations[0]])
                 final_lib_local_minimums = final_lib_local_minimums[final_lib_local_minimums >= left_candidates]
+            # Аналогично для второй границы
             if np.any(check_lib_peak_locations > hidden_lib_peak_locations[-1]):
                 lib_peak_locations = np.append(lib_peak_locations, hidden_lib_peak_locations[-1])
                 right_candidates = min(final_lib_local_minimums[final_lib_local_minimums > lib_peak_locations[-1]])
                 final_lib_local_minimums = final_lib_local_minimums[final_lib_local_minimums <= right_candidates]
 
-        lib_peak_locations = np.unique(np.sort(lib_peak_locations))
+        # Чистим повторы и сортируем массив
+        lib_peak_locations = np.unique(lib_peak_locations)
+
+        # считаем концентрации ГБ
         lib_length = np.polyval(px, lib_peak_locations)
         lib_peaks_corr = np.polyval(sdc, lib_length)
 
+        # Находим индексы элементов LibPeakLocations в Hidden_LibPeakLocations
+        # TODO searchsorted не фильтрует отсутствующие элементы! Нужно заменить на правильную реализацию
         indices = np.searchsorted(hidden_lib_peak_locations, lib_peak_locations)
-        prev_idx = 0
-        for current_idx in indices:
-            lib_areas = np.append(lib_areas, np.sum(hidden_lib_areas[prev_idx:current_idx + 1]))
-            lib_one_area = np.append(lib_one_area, np.sum(hid_one_area[prev_idx:current_idx + 1]))
-            lib_one_area_conc = np.append(lib_one_area_conc, np.sum(hid_one_area_conc[prev_idx:current_idx + 1]))
-            lib_molarity = np.append(lib_molarity, np.sum(hid_molarity[prev_idx:current_idx + 1]))
-            prev_idx = current_idx + 1
 
+        # Суммируем площади по индексам
+        prev_idx = 0
+        # Так как Hidden_LibPeakLocations - это куски фрагментов по 1 пн, а LibPeakLocations - это фрагменты, которые были
+        # найдены (нужно для визуализации), нам нужно найти концентрацию этих фрагментов: концентрация каждого
+        # фрагмента - сумма предыдущего площадей Hidden_LibPeakLocations
+        for current_idx in indices:
+            lib_areas = np.append(lib_areas, np.sum(hidden_lib_areas[prev_idx:current_idx + 1]))  # площадь
+            lib_one_area = np.append(lib_one_area, np.sum(hid_one_area[prev_idx:current_idx + 1]))  # площадь на 1 пн
+            lib_one_area_conc = np.append(lib_one_area_conc, np.sum(hid_one_area_conc[prev_idx:current_idx + 1]))  # концентрация
+            lib_molarity = np.append(lib_molarity, np.sum(hid_molarity[prev_idx:current_idx + 1]))  # молярность
+            prev_idx = current_idx + 1  # Начинаем следующий интервал с нового индекса +1
+
+    #  Если ГБ гладкая/фаикс/слишком низкая (потому что там всего один пик - нет локальных)
     else:
+        #  считаем концентрации ГБ
         lib_length = np.polyval(px, lib_peak_locations)
         lib_peaks_corr = np.polyval(sdc, lib_length)
+
         max_lib_value = lib_peak_locations
+
         lib_areas = np.append(lib_areas, np.sum(hidden_lib_areas))
         lib_one_area = np.append(lib_one_area, np.sum(hid_one_area))
         lib_one_area_conc = np.append(lib_one_area_conc, np.sum(hid_one_area_conc))
         lib_molarity = np.append(lib_molarity, np.sum(hid_molarity))
 
-    # one_area = np.concatenate(([led_one_area[0]], lib_one_area, [led_one_area[-1]]))  # площадь на один фрагмент, не нужен в коде, но может понадобиться для проверки!!!
+    one_area = np.concatenate(([led_one_area[0]], lib_one_area, [led_one_area[-1]]))  # площадь на один фрагмент, не нужен в коде, но может понадобиться для проверки!!!
     all_areas_conc = np.concatenate(([concentrations[0]], lib_one_area_conc, [concentrations[-1]]))  # концентрация
     all_areas = np.concatenate(([st_areas[0]], lib_areas, [st_areas[-1]]))  # общая площадь фрагмента
     molarity = np.concatenate(([st_molarity[0]], lib_molarity, [st_molarity[-1]]))  # молярность
@@ -451,9 +556,9 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
     else:
         x_lib_fill = np.array([])
 
-    hpx = np.round(lib_peaks_corr)
-    unr = np.round(unrecognized_peaks_corr)
-    stp = np.array([sizes[0], sizes[-1]])
+    hpx = matlab_round(lib_peaks_corr)
+    unr = matlab_round(unrecognized_peaks_corr)
+    stp = matlab_round([sizes[0], sizes[-1]])
 
     return (
         t_main, denoised_data, st_peaks, st_length, t_unrecognized_peaks, unrecognized_peaks,
@@ -464,13 +569,44 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
     )
 
 
-def hid_fun(denoised_data, start_index, end_index, hidden_lib_areas, max_lib_value) -> Any:
+def dl_peaks(selected_peak_locations, denoised_data) -> tuple[Any, Any]:
+    one_pks = np.array([])
+    # Проходим по каждому пику в selectedPeakLocations
+    for i, peak_idx in enumerate(selected_peak_locations):
+        left_idx = peak_idx - 4
+        right_idx = peak_idx + 4
 
-    before_max = np.int64(np.floor(np.median(np.arange(start_index, max_lib_value + 1))) + 0.5)  # Находим медианное значение между start_index и maxLibValue (левая середина пика ГБ)
-    after_max = np.int64(np.floor(np.median(np.arange(max_lib_value, end_index + 1)) + 0.5))  # Находим медианное значение между maxLibValue и end_index (правая середина пика ГБ)
+        # Ищем максимум между текующими границами
+        max_value = np.max(denoised_data[left_idx:right_idx])  # это по ОУ
+        peak_idx = np.where(np.isin(denoised_data, max_value))[0][0]  # это перевод в ОХ
+
+        # Находим границы от текущего максимального значения +-4
+        left_idx = peak_idx - 4
+        right_idx = peak_idx + 4
+
+        # Значения слева и справа
+        left_value = denoised_data[left_idx]
+        right_value = denoised_data[right_idx]
+
+        # Проверяем, если обе точки ниже 90% от основного пика (если обе лежат ниже, значит это отдельный пик, а не часть локальных минимумов)
+        if left_value < 0.9 * max_value and right_value < 0.9 * max_value:
+            # Добавляем в массив standard_pks максимальное значение
+            one_pks = np.append(one_pks, max_value)
+            selected_peak_locations[i] = peak_idx  # заменяем на найденный максимум
+    clear_pks = np.where(np.isin(denoised_data, one_pks))[0]
+    return clear_pks, selected_peak_locations
+
+
+def hid_fun(denoised_data, start_index, end_index, hidden_lib_areas, max_lib_value) -> tuple[Any, Any, Any]:
+
+    median_before_max = np.median(np.arange(start_index, max_lib_value + 1))  # Находим медианное значение между start_index и maxLibValue (левая середина пика ГБ)
+    median_after_max = np.median(np.arange(max_lib_value, end_index + 1))  # Находим медианное значение между maxLibValue и end_index (правая середина пика ГБ)
+
+    rounded_before_max = matlab_round(median_before_max)
+    rounded_after_max = matlab_round(median_after_max)
 
     # Создаем массив чисел от первого округленного значения до второго с шагом 1
-    hidden_lib_peak_locations = np.arange(before_max, after_max + 1)
+    hidden_lib_peak_locations = np.arange(rounded_before_max, rounded_after_max + 1)
     hidden_final_lib_local_minimums = np.concatenate(([start_index], hidden_lib_peak_locations))  # все площади
 
     x_vals = np.arange(len(denoised_data))
@@ -481,6 +617,7 @@ def hid_fun(denoised_data, start_index, end_index, hidden_lib_areas, max_lib_val
     # ДЛЯ ЗАКРАСКИ И ОБЩЕЙ ПЛОЩАДИ
     for i in range(len(hidden_final_lib_local_minimums) - 1):
         h_x_range1 = np.arange(hidden_final_lib_local_minimums[i], hidden_final_lib_local_minimums[i + 1] + 1)
+        # Поиск площади методом Симпсона
         area, _ = quad(interp_func, h_x_range1[0], h_x_range1[-1])
         hidden_lib_areas = np.append(hidden_lib_areas, area)
     return hidden_lib_peak_locations, hidden_lib_areas, hidden_final_lib_local_minimums

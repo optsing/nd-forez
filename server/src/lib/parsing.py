@@ -9,7 +9,7 @@ def parse_file(content: bytes, filename: str) -> tuple[list[SizeStandard], list[
     gen_libs: list[GenLib] = []
     try:
         root = ElementTree.fromstring(content)
-        raw_title: str = root.findtext('Title')  # type: ignore
+        raw_title: str = root.findtext('Title') or 'Unknown'
         type_value = root.findtext('Type')
         if type_value == 'AllelicLadder':
             size_standard_node = root.find('./SizeStandard/Sizes')

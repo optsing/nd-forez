@@ -83,7 +83,7 @@ const FileUploadPage: React.FC = () => {
     }, []);
 
     const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-        if (isParsing) return;
+        if (isParsing || isAnalyzing) return;
         const files = event.target.files ? Array.from(event.target.files) : [];
         if (files.length === 0) return;
 

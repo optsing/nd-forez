@@ -11,7 +11,7 @@ def load_matlab_data(filename: str) -> list[float]:
         return [float(line.strip()) for line in f if line.strip()]
 
 
-def SDFind(data: list[float], in_sizes: list[float], release_times: list[int], concentrations: list[float]) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
+def SDFind(data: list[int] | list[float], in_sizes: list[float], release_times: list[int], concentrations: list[float]) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
     x = np.arange(len(data))
     raw_data = msbackadj(x, data, window_size=140, step_size=40, quantile_value=0.1)  # коррекция бейзлайна
     filtered_data = wden(raw_data, 'sqtwolog', 's', 'sln', 1, 'sym2')  # фильтр данных
@@ -44,6 +44,9 @@ def SDFind(data: list[float], in_sizes: list[float], release_times: list[int], c
 
     threshold = np.quantile(filtered_data, 0.995)  # для начала возьмем порог на уровне 99.5%, будем его снижать, если надо
 
+    peaks = np.array([], dtype=np.int64)
+    data_peak_idx: list[int] = []
+
     # *** НАЙДЕМ В СПЕКТРЕ ПИКИ, СООТВЕТВУЮЩИЕ ПИКАМ СТАНДАРТА ***
     for _ in range(30):   # главный цикл (30 попыток)
         # ищем пики, пытаемся среди найденных отобрать подходящие, если не
@@ -63,12 +66,16 @@ def SDFind(data: list[float], in_sizes: list[float], release_times: list[int], c
         if len(peaks) >= overmuch * len(sizes):
             return [], [], [], raw_data, [], [], []
 
+        #  ОТСЕИВАЕМ ЛИШНИЕ
+        data_peak_idx = []
         for k in range(len(sizes) - 1):
             for j in range(k + 1, len(peaks)):
-                pace = (peaks[j] - peaks[k]) / d_sizes[0]  # кандидат на "базовый шаг"
+                PACE = (peaks[j] - peaks[k]) / d_sizes[0]  # кандидат на "базовый шаг"
+                pace = PACE  # pace - текущий шаг
                 data_peak_idx = [0]  # кандидат
 
                 i_liz, i_dat, d_next = 0, 0, 0
+                # проверим является ли кандидат на "базовый шаг" настоящим
                 while d_next < peaks[-1] and i_liz < len(sizes) - 1:
                     d_prev = peaks[i_dat]
                     d_d = pace * d_sizes[i_liz]
@@ -85,7 +92,7 @@ def SDFind(data: list[float], in_sizes: list[float], release_times: list[int], c
                     else:  # пика в ожидаемом месте нет - возможно начальный пик ложный
                         i_dat = data_peak_idx[0] + 1  # примем следующий пик за начальный
                         data_peak_idx = [i_dat]
-                        pace = (peaks[j] - peaks[k]) / d_sizes[0]
+                        pace = PACE
                         i_liz = 0  # стандарт начнем с начала
 
                 if len(data_peak_idx) == len(sizes):  # нужное количество пиков нашли - выходим из цикла
@@ -129,6 +136,13 @@ def SDFind(data: list[float], in_sizes: list[float], release_times: list[int], c
                     areas.append(area_val)
 
         np_areas = np.flip(areas)
+
+        if (len(np_areas) != len(sizes)):
+            # TODO Добавить калибровку на стороне клиента
+            # Для первой реализации достаточно прервать анализ с просьбой уточнить калибровку
+            # Потом можем возвращать особый класс ошибки и форсировать открытие окна калибровки на клиенте
+            raise ValueError('Стандарт длин не был найден! Возможно, указанная калибровка не подходит выбранному стандарту длин.')
+
         # *** развернем обратно вектор обратно, чтобы индексы шли слева направо ***
         raw_data = np.flip(raw_data)
         selected_peaks = -selected_peaks + len(raw_data) - 1
