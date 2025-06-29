@@ -11,3 +11,6 @@ wheels/
 
 # Database
 database.db
+
+# For local debug only
+MatlabData

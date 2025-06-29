@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { ChartData } from 'chart.js';
 import { AnalyzeResultData } from '../models/models';
-import { CreateFilledDataset, CreateLineDataset, CreatePointDataset, CreateVerticalLines, round, useChartColors, useChartOptions } from '../helpers/helpers';
+import { CreateFilledDataset, CreateLineDataset, CreatePointDataset, CreateVerticalLines, useChartColors, useChartOptions } from '../helpers/helpers';
 import ChartContainer from './chart-container';
 import ChartWithZoom from './chart-with-zoom';
 import { AnnotationOptions } from 'chartjs-plugin-annotation';
@@ -44,21 +44,21 @@ const GenLibAnalyzedChart: React.FC<Props> = ({
         };
         if (source.st_peaks.length > 0) {
             const peakPoints = source.st_peaks.map((x, i) => ({ x, y: source.denoised_data[source.st_length[i]] * 1e-6 }));
-            annotations.push(...CreateVerticalLines(peakPoints, chartColors, chartColors.secondary));
+            annotations.push(...CreateVerticalLines(peakPoints, source.stp, chartColors, chartColors.secondary));
             data.datasets.push(
                 CreatePointDataset('Пики', peakPoints, chartColors.secondary, 'crossRot')
             );
         }
         if (source.t_unrecognized_peaks.length > 0) {
             const peakPoints = source.t_unrecognized_peaks.map((x, i) => ({ x, y: source.denoised_data[source.unrecognized_peaks[i]] * 1e-6 }));
-            annotations.push(...CreateVerticalLines(peakPoints, chartColors, chartColors.secondary));
+            annotations.push(...CreateVerticalLines(peakPoints, source.unr, chartColors, chartColors.secondary));
             data.datasets.push(
                 CreatePointDataset('Пики (неизвестные)', peakPoints, chartColors.secondary, 'cross')
             );
         }
         if (source.lib_length.length > 0) {
             const peakPoints = source.lib_length.map((x, i) => ({ x, y: source.denoised_data[source.LibPeakLocations[i]] * 1e-6 }));
-            annotations.push(...CreateVerticalLines(peakPoints, chartColors, chartColors.secondary));
+            annotations.push(...CreateVerticalLines(peakPoints, source.hpx, chartColors, chartColors.secondary));
             data.datasets.push(
                 CreatePointDataset('Пики (библиотека)', peakPoints, chartColors.secondary)
             )

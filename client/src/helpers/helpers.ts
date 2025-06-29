@@ -74,11 +74,6 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
             maintainAspectRatio: false,
             scales: {
                 x: {
-                    title: {
-                        display: true,
-                        text: 'Длина фрагментов, пн',
-                        color: chartColors.textColor,
-                    },
                     type: 'linear',
                     ticks: {
                         display: true,
@@ -140,9 +135,10 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
     }, [chartColors, yTitle, annotations]);
 }
 
-export function CreateVerticalLines(points: Point[], chartColors: ChartColors, datasetColors: ChartDatasetColors): AnnotationOptions[] {
+export function CreateVerticalLines(points: Point[], titles: number[], chartColors: ChartColors, datasetColors: ChartDatasetColors): AnnotationOptions[] {
     const result: AnnotationOptions[] = [];
-    for (const p of points) {
+    for (let i = 0; i < points.length; i++) {
+        const p = points[i];
         result.push({
             type: 'line',
             xMin: p.x,
@@ -152,7 +148,7 @@ export function CreateVerticalLines(points: Point[], chartColors: ChartColors, d
             borderColor: datasetColors.line,
             borderWidth: 1,
             label: {
-                content: round(p.x).toString(),
+                content: round(titles[i]).toString(),
                 display: true,
                 position: 'end',
                 color: chartColors.textColor,

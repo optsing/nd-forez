@@ -11,7 +11,7 @@ def load_matlab_data(filename: str) -> list[float]:
         return [float(line.strip()) for line in f if line.strip()]
 
 
-def SDFind(data: list[int], in_sizes: list[float], release_times: list[int], concentrations: list[float]) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
+def SDFind(data: list[float], in_sizes: list[float], release_times: list[int], concentrations: list[float]) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
     x = np.arange(len(data))
     raw_data = msbackadj(x, data, window_size=140, step_size=40, quantile_value=0.1)  # коррекция бейзлайна
     filtered_data = wden(raw_data, 'sqtwolog', 's', 'sln', 1, 'sym2')  # фильтр данных
@@ -53,7 +53,7 @@ def SDFind(data: list[int], in_sizes: list[float], release_times: list[int], con
         threshold *= 0.9
 
         for _ in range(20):
-            peaks, _ = find_peaks(filtered_data, height=threshold, distance=8)
+            peaks, _ = find_peaks(filtered_data, height=threshold, distance=9)  # Equal MinPeakDistance=8
             if len(peaks) < len(sizes):
                 threshold *= 0.9
             else:
