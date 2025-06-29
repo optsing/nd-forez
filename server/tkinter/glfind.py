@@ -11,7 +11,7 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
     noise = raw_data[0:50]
     # Вычитание шума из данных
     denoised_data = raw_data - np.mean(noise)
-    x = np.arange(0, len(data))
+    x = np.arange(len(data))
     denoised_data = msbackadj(x, denoised_data, window_size=140, step_size=40, quantile_value=0.1)  # коррекция бейзлайна
 
     # 2. Обработка данных
@@ -221,7 +221,7 @@ def GLFind(data: list[float], peak, sizes: list[float], concentrations: list[flo
     # Этот блок приводит электрофореграмму геномной библиотеки и стандарта
     # длин в одну шкалу (выравнивает по ширине и высоте)
     px = np.polyfit(st_length, st_peaks, 1)  # выравнивание по ширине
-    t = np.arange(1, len(denoised_data) + 1)
+    t = np.arange(len(denoised_data))
     t_main = np.polyval(px, t)
 
     x_fill_1 = np.array([])

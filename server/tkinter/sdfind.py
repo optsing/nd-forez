@@ -12,7 +12,7 @@ from msbackadj import msbackadj
 # CONC - concentrations
 def SDFind(data: list[float], in_sizes: list[float], release_times: list[int], concentrations: list[float]) -> Any:
     sizes = np.flip(in_sizes)
-    x = np.arange(1, len(data) + 1)
+    x = np.arange(len(data))
     raw_data = msbackadj(x, data, window_size=140, step_size=40, quantile_value=0.1)  # коррекция бейзлайна
     filtered_data = wden(raw_data, 'sqtwolog', 's', 'sln', 1, 'sym2')  # фильтр данных
 

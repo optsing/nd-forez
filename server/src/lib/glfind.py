@@ -1,6 +1,6 @@
 from typing import Any
 import numpy as np
-from lib.msbackadj import msbackadj
+from lib.matlab.msbackadj import msbackadj
 from scipy.signal import savgol_filter, find_peaks
 from scipy.integrate import trapezoid, quad
 
@@ -11,7 +11,7 @@ def GLFind(data: list[int], peak, sizes: list[float], concentrations: list[float
     noise = raw_data[0:50]
     # Вычитание шума из данных
     denoised_data = raw_data - np.mean(noise)
-    x = np.arange(1, len(data) + 1)
+    x = np.arange(len(data))
     denoised_data = msbackadj(x, denoised_data, window_size=140, step_size=40, quantile_value=0.1)  # коррекция бейзлайна
 
     # 2. Обработка данных
@@ -221,12 +221,13 @@ def GLFind(data: list[int], peak, sizes: list[float], concentrations: list[float
     # Этот блок приводит электрофореграмму геномной библиотеки и стандарта
     # длин в одну шкалу (выравнивает по ширине и высоте)
     px = np.polyfit(st_length, st_peaks, 1)  # выравнивание по ширине
-    t = np.arange(0, len(denoised_data))
+    t = np.arange(len(denoised_data))
     t_main = np.polyval(px, t)
 
     x_fill_1 = np.array([])
     x_lib_fill_1 = np.array([])
     y_fill = np.array([])
+    y_lib_fill = np.array([])
 
     # 5. Обработка данных с учётом калибровки
     # В этом блоке теперь находим и разбиваем все локальные пики по классам: реперные пики, пики геномной библиотеки и неопознанные пики
@@ -357,7 +358,7 @@ def GLFind(data: list[int], peak, sizes: list[float], concentrations: list[float
             i += 1
 
         max_index = np.argmax(rest_peaks_areas)
-        lib_peak_locations = rest_peaks[max_index]
+        lib_peak_locations = np.array([rest_peaks[max_index]])
 
         start_index = max(rest_peaks_locations[rest_peaks_locations < lib_peak_locations])
         end_index = min(rest_peaks_locations[rest_peaks_locations > lib_peak_locations])

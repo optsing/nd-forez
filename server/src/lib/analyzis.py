@@ -7,8 +7,6 @@ from models.models import SizeStandard, GenLib, AnalyzeResult, AnalyzeResultData
 def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResult:
     [peak, led_area, led_conc, ZrRef, SD_molarity, liz_fit, locs_fit] = SDFind(size_standard.data, size_standard.sizes, size_standard.release_times, size_standard.concentrations)
 
-    print(peak, led_area, led_conc, ZrRef, SD_molarity)
-
     results: list[AnalyzeResultData] = []
     for gl_d in gen_libs:
         (

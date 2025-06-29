@@ -2,22 +2,40 @@ from typing import Any
 import numpy as np
 from scipy.signal import find_peaks, savgol_filter
 from scipy.integrate import quad
-from lib.wden2 import wden
-from lib.msbackadj import msbackadj
+from lib.matlab.wden import wden
+from lib.matlab.msbackadj import msbackadj
 
 
-# rawRef - data
-# InLIZ - sizes
-# locs_pol - release_times
-# CONC - concentrations
+def load_matlab_data(filename: str) -> list[float]:
+    with open(filename, "r") as f:
+        return [float(line.strip()) for line in f if line.strip()]
+
+
 def SDFind(data: list[int], in_sizes: list[float], release_times: list[int], concentrations: list[float]) -> tuple[Any, Any, Any, Any, Any, Any, Any]:
-    sizes = np.flip(in_sizes)
-    x = np.arange(1, len(data) + 1)
+    x = np.arange(len(data))
     raw_data = msbackadj(x, data, window_size=140, step_size=40, quantile_value=0.1)  # коррекция бейзлайна
     filtered_data = wden(raw_data, 'sqtwolog', 's', 'sln', 1, 'sym2')  # фильтр данных
 
+    # raw_data_ml = load_matlab_data('raw_data.txt')
+    # delta = raw_data - raw_data_ml
+
+    # # Mean Squared Error (MSE)
+    # mse = np.mean((delta) ** 2)
+    # # Mean Absolute Error (MAE)
+    # mae = np.mean(np.abs(delta))
+    # # Maximum absolute difference
+    # max_diff = np.max(np.abs(delta))
+    # # Pearson correlation coefficient
+    # corr_coef = np.corrcoef(delta)
+
+    # print(f"MSE: {mse}")
+    # print(f"MAE: {mae}")
+    # print(f"Max absolute difference: {max_diff}")
+    # print(f"Correlation coefficient: {corr_coef}")
+
     filtered_data = np.flip(filtered_data)
     raw_data = np.flip(raw_data)
+    sizes = np.flip(in_sizes)
 
     # Понадобится для отсеивания найденных пиков в соотвествии с выбранным законом
     poly_coef = np.polyfit(in_sizes, release_times, 4)  # полином 4 степени
@@ -43,7 +61,7 @@ def SDFind(data: list[int], in_sizes: list[float], release_times: list[int], con
 
         overmuch = 2.4  # порог, значение взято из опыта
         if len(peaks) >= overmuch * len(sizes):
-            return [], [], [], data, [], [], []
+            return [], [], [], raw_data, [], [], []
 
         for k in range(len(sizes) - 1):
             for j in range(k + 1, len(peaks)):
@@ -99,18 +117,21 @@ def SDFind(data: list[int], in_sizes: list[float], release_times: list[int], con
             # считаем количество значений между текущей парой точек
             if np.sum(indices_between) == 1:
                 # Выделим текущую область
-                x_range = np.arange(crossings[i], crossings[i + 1])
+                x_range = np.arange(crossings[i], crossings[i + 1] + 1)
                 y_range = raw_data[x_range]
                 # Убедимся, что размерности совпадают
                 if len(x_range) == len(y_range):
-                    x_vals = np.arange(len(data))
-                    area_val, _ = quad(lambda x: np.interp(x, x_vals, data), x_range[0], x_range[-1])
+                    x_vals = np.arange(len(raw_data))
+
+                    def interp_func(x):
+                        return np.interp(x, x_vals, raw_data, left=0.0, right=0.0)
+                    area_val, _ = quad(interp_func, x_range[0], x_range[-1])
                     areas.append(area_val)
 
         np_areas = np.flip(areas)
         # *** развернем обратно вектор обратно, чтобы индексы шли слева направо ***
         raw_data = np.flip(raw_data)
-        selected_peaks = -selected_peaks + len(data) - 1
+        selected_peaks = -selected_peaks + len(raw_data) - 1
         selected_peaks = np.flip(selected_peaks)
 
         frg_area = np_areas / (np.flip(sizes) ** 2 / 100)
