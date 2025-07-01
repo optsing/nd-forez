@@ -10,9 +10,9 @@ import {
 } from '@mui/material';
 import { AnalyzeResult } from '../models/models';
 import ChartContainer from './chart-container';
-import StandardAnalyzedChartCalibrationCurve from './standard-analyzed-chart-calibration-curve';
-import StandardAnalyzedChart from './standard-analyzed-chart';
 import StandardAnalyzedTable from './standard-analyzed-table';
+import ChartWithZoom from './chart-with-zoom';
+import { prepareStadardAnalyzedData, prepareStandardAnalyzedCalibrationCurve } from '../chart-data/chart-data';
 
 
 interface Props {
@@ -59,16 +59,19 @@ const StandardAnalyzedChartContainer: React.FC<Props> = ({
                         <Typography variant="h6" textAlign='center' gutterBottom>
                             Стандарт длин: {analyzeResult.title}
                         </Typography>
-                        <StandardAnalyzedChart
-                            analyzeResult={analyzeResult}
+                        <ChartWithZoom
+                            rawData={analyzeResult}
+                            prepare={prepareStadardAnalyzedData}
                         />
                     </Box>}
                     {(!isCompactMode || selected === 1) && <Box>
                         <Typography variant="h6" textAlign='center' gutterBottom>
                             Калибровочная кривая: {analyzeResult.title}
                         </Typography>
-                        <StandardAnalyzedChartCalibrationCurve
-                            analyzeResult={analyzeResult}
+                        <ChartWithZoom
+                            rawData={analyzeResult}
+                            prepare={prepareStandardAnalyzedCalibrationCurve}
+                            yTitle='Время выхода, с'
                         />
                     </Box>}
                     <StandardAnalyzedTable

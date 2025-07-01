@@ -10,8 +10,9 @@ import {
 } from '@mui/material';
 import { AnalyzeResultData } from '../models/models';
 import ChartContainer from './chart-container';
-import GenLibAnalyzedChart from './genlib-analyzed-chart';
 import GenLibAnalyzedTable from './genlib-analyzed-table';
+import ChartWithZoom from './chart-with-zoom';
+import { prepareGenLibAnalyzed } from '../chart-data/chart-data';
 
 
 
@@ -63,8 +64,9 @@ const GenLibAnalyzedChartContainer: React.FC<Props> = ({
                     <Typography variant="h6" textAlign='center' gutterBottom>
                         Геномная библиотека: {data.title}
                     </Typography>
-                    <GenLibAnalyzedChart
-                        analyzeResultData={data}
+                    <ChartWithZoom
+                        rawData={data}
+                        prepare={prepareGenLibAnalyzed}
                     />
                     <GenLibAnalyzedTable
                         analyzeResultData={data}

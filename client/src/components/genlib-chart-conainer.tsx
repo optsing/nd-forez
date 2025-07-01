@@ -9,7 +9,8 @@ import {
 } from '@mui/material';
 import { GenLib } from '../models/models';
 import ChartContainer from './chart-container';
-import GenLibChart from './genlib-chart';
+import ChartWithZoom from './chart-with-zoom';
+import { prepareGenLibs } from '../chart-data/chart-data';
 
 interface Props {
     genLibs: GenLib[];
@@ -71,8 +72,9 @@ const GenLibChartContainer: React.FC<Props> = ({
                 }
             >
                 <Paper sx={{ p: 2}}>
-                    <GenLibChart
-                        genLibs={selectedGenLibs}
+                    <ChartWithZoom
+                        rawData={genLibs}
+                        prepare={prepareGenLibs}
                     />
                 </Paper>
             </ChartContainer>

@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, useEffect } from 'react';
 import { Typography, CircularProgress, Fab, Box, Tabs, Tab, Button } from '@mui/material';
-import { Science, UploadFile } from '@mui/icons-material';
+import { Science, UploadFile, Assessment } from '@mui/icons-material';
 import { AnalyzeResult, ParseResult } from '../models/models';
 import StandardAnalyzedChartContainer from '../components/standard-analyzed-chart-container';
 import GenLibAnalyzedChartContainer from '../components/genlib-analyzed-chart-container';
@@ -21,6 +21,7 @@ import { analyzeData, getParseResult, parseFiles, getErrorMessage } from '../api
 import { useAlert } from '../context/alert-context';
 import StandardChartContainer from '../components/standard-chart-container';
 import GenLibChartContainer from '../components/genlib-chart-conainer';
+import { useOffscreenChartsToPdf } from '../helpers/pdf';
 
 
 ChartJS.register(
@@ -50,6 +51,8 @@ const FileUploadPage: React.FC = () => {
     const [selectedGenLibsAnalyzed, setSelectedGenLibsAnalyzed] = useState(0);
 
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const { startPdfGeneration, generatingPDF } = useOffscreenChartsToPdf();
 
     useEffect(() => {
         const fn = async (id: number) => {
@@ -194,9 +197,13 @@ const FileUploadPage: React.FC = () => {
                             md: 6,
                         },
                         py: 1,
+                        gap: 1,
                     }}>
                         <Button variant='outlined' onClick={() => setIsCompactMode(!isCompactMode)}>
                             {isCompactMode ? 'Развернуть' : 'Свернуть'}
+                        </Button>
+                        <Button variant='contained' onClick={() => startPdfGeneration(analyzeResult)}>
+                            {generatingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Assessment sx={{ mr: 1 }} /> } Создать отчет
                         </Button>
                     </Box>
                     <Box sx={{

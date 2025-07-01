@@ -1,37 +1,19 @@
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import React, { useMemo } from "react";
 import { AnalyzeResult } from "../models/models";
-import { round } from "../helpers/helpers";
+import { prepareStandardAnalyzedTable } from "../chart-data/chart-data";
 
 
 interface Props {
     analyzeResult: AnalyzeResult;
 }
 
-interface TableRow {
-    size: number;
-    concentration: number;
-    molarity: number;
-    peak: number;
-    led: number;
-}
-
 
 const StandardAnalyzedTable: React.FC<Props> = ({
     analyzeResult,
 }) => {
-    const rows: TableRow[] = useMemo(() => {
-        const result: TableRow[] = [];
-        for (let i = 0; i < analyzeResult.sizes.length; i++) {
-            result.push({
-                size: analyzeResult.sizes[i],
-                concentration: analyzeResult.concentrations[i],
-                molarity: round(analyzeResult.SD_molarity[i]),
-                peak: analyzeResult.peak[i],
-                led: round(analyzeResult.led_area[i] * 1e-7),
-            });
-        }
-        return result;
+    const rows = useMemo(() => {
+        return prepareStandardAnalyzedTable(analyzeResult);
     }, [analyzeResult]);
 
     return (
@@ -43,7 +25,7 @@ const StandardAnalyzedTable: React.FC<Props> = ({
                         <TableCell>Концентрация, нг/мкл</TableCell>
                         <TableCell>Молярность, нмоль/л</TableCell>
                         <TableCell>Время выхода, с</TableCell>
-                        <TableCell>Площадь * 10^7</TableCell>
+                        <TableCell>Площадь * 10⁷</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>

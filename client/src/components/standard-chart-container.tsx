@@ -10,7 +10,8 @@ import {
 } from '@mui/material';
 import { SizeStandard } from '../models/models';
 import ChartContainer from './chart-container';
-import StandardChart from './standard-chart';
+import ChartWithZoom from './chart-with-zoom';
+import { prepareStadardData } from '../chart-data/chart-data';
 
 
 interface Props {
@@ -48,8 +49,9 @@ const StandardChartContainer: React.FC<Props> = ({
                 </FormControl>}
             >
                 <Paper sx={{ p: 2 }}>
-                    <StandardChart
-                        sizeStandard={sizeStandards[selected]}
+                    <ChartWithZoom
+                        rawData={sizeStandards[selected]}
+                        prepare={prepareStadardData}
                     />
                 </Paper>
             </ChartContainer>
