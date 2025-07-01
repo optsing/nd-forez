@@ -1,7 +1,5 @@
-import { pdf } from '@react-pdf/renderer';
 import { useState } from 'react';
 import { saveAs } from 'file-saver';
-import ReportPDF from '../components/pdf/report';
 import { AnalyzeResult } from '../models/models';
 
 import { Chart } from 'chart.js';
@@ -56,6 +54,8 @@ export function useOffscreenChartsToPdf() {
   const generatePdf = async (analyzeResult: AnalyzeResult) => {
     setGeneratingPDF(true);
     try {
+      const { pdf } = await import('@react-pdf/renderer');
+      const { default: ReportPdf } = await import('../components/pdf/report');
       const standardChart = await renderChartToImage(prepareStadardAnalyzedData(analyzeResult));
       const standardCalibrationCurve = await renderChartToImage(prepareStandardAnalyzedCalibrationCurve(analyzeResult));
       const genLibCharts: GenLibPdf[] = await Promise.all(analyzeResult.genlib_data.map(async genLib => (
@@ -69,7 +69,7 @@ export function useOffscreenChartsToPdf() {
 
       const now = new Date();
 
-      const blob = await pdf(<ReportPDF
+      const blob = await pdf(<ReportPdf
         reportDate={now}
         standardTitle={analyzeResult.title}
         standardChart={standardChart}

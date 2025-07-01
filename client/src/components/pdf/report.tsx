@@ -5,7 +5,7 @@ import { GenLibPdf } from '../../helpers/pdf';
 
 Font.register({
     family: 'Roboto',
-    src: robotoSrc
+    src: robotoSrc,
 })
 
 const styles = StyleSheet.create({
@@ -35,7 +35,7 @@ type Props = {
 }
 
 
-const ReportPDF: React.FC<Props> = ({
+const ReportPdf: React.FC<Props> = ({
     reportDate,
     standardTitle,
     standardChart,
@@ -133,4 +133,4 @@ const ReportPDF: React.FC<Props> = ({
     );
 }
 
-export default ReportPDF;
+export default ReportPdf;
