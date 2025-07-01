@@ -1,9 +1,10 @@
 import { Api, AreaChart, History } from '@mui/icons-material';
 import { Outlet } from 'react-router';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
-import type { Navigation, Branding } from '@toolpad/core/AppProvider';
+import type { Navigation, Branding, AppTheme } from '@toolpad/core/AppProvider';
 import Logo from './components/logo';
 import { AlertProvider } from './context/alert-context';
+import { createTheme } from '@mui/material/styles';
 
 const NAVIGATION: Navigation = [
   {
@@ -27,9 +28,23 @@ const BRANDING: Branding = {
   logo: <Logo />,
 };
 
+const theme: AppTheme = createTheme({
+  cssVariables: {
+    colorSchemeSelector: 'data-toolpad-color-scheme',
+  },
+  defaultColorScheme: 'light',
+  colorSchemes: { light: {
+    palette: {
+      background: {
+        default: '#f5f5f5',
+      },
+    },
+  }, dark: true },
+});
+
 export default function App() {
   return (
-    <ReactRouterAppProvider navigation={NAVIGATION} branding={BRANDING} >
+    <ReactRouterAppProvider navigation={NAVIGATION} branding={BRANDING} theme={theme}>
       <AlertProvider>
         <Outlet />
       </AlertProvider>

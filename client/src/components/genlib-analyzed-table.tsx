@@ -1,11 +1,10 @@
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
-import React from "react";
+import React, { useMemo } from "react";
 import { AnalyzeResultData } from "../models/models";
 import { round } from "../helpers/helpers";
 
 interface Props {
-    analyzeResultData: AnalyzeResultData[];
-    selected: number;
+    analyzeResultData: AnalyzeResultData;
 }
 
 interface TableRow {
@@ -16,44 +15,47 @@ interface TableRow {
     gl_areas: number;
 }
 
+
 const GenLibAnalyzedTable: React.FC<Props> = ({
     analyzeResultData,
-    selected,
 }) => {
-    const headers1: string[] = ["Длина фрагментов, пн", "Концентрация, нг/мкл", "Молярность, нмоль/л", "Время выхода, с", "Площадь * 10^7"];
-    const rows1: TableRow[] = [];
-
-    const source = analyzeResultData[selected];
-
-    for (let i = 0; i < source.peaksCorr.length; i++) {
-        rows1.push({
-            peaks_corr: round(source.peaksCorr[i]),
-            area_corr: round(source.areaCorr[i]),
-            molarity: round(source.molarity[i]),
-            library_peaks: round(source.library_peaks[i]),
-            gl_areas: round(source.GLAreas[i] * 1e-7),
-        });
-    }
-
-    const headers2: string[] = ['Длина максимального фрагмента, пн', 'Концентрация геномной библиотеки, нг/мкл', 'Молярность геномной библиотеки, пмоль/л', 'Время выхода максимального фрагмента, с', 'Площадь геномной библиотеки * 10^7'];
-    const rows2: TableRow[] = [{
-        peaks_corr: round(source.maxLibPeak),
-        area_corr: round(source.totalLibConc),
-        molarity: round(source.totalLibMolarity),
-        library_peaks: round(source.maxLibValue),
-        gl_areas: round(source.totalLibArea * 1e-7),
-    }];
+    const rows: TableRow[] = useMemo(() => {
+        const result: TableRow[] = [];
+        for (let i = 0; i < analyzeResultData.peaksCorr.length; i++) {
+            result.push({
+                peaks_corr: round(analyzeResultData.peaksCorr[i]),
+                area_corr: round(analyzeResultData.areaCorr[i]),
+                molarity: round(analyzeResultData.molarity[i]),
+                library_peaks: round(analyzeResultData.library_peaks[i]),
+                gl_areas: round(analyzeResultData.GLAreas[i] * 1e-7),
+            });
+        }
+        return result;
+    }, [analyzeResultData])
+    const rowsTotal: TableRow[] = useMemo(() => {
+        return [{
+            peaks_corr: round(analyzeResultData.maxLibPeak),
+            area_corr: round(analyzeResultData.totalLibConc),
+            molarity: round(analyzeResultData.totalLibMolarity),
+            library_peaks: round(analyzeResultData.maxLibValue),
+            gl_areas: round(analyzeResultData.totalLibArea * 1e-7),
+        }];
+    }, [analyzeResultData])
 
     return (
-        <TableContainer component={Paper} sx={{ mt: 1, mb: 3 }}>
+        <TableContainer component={Paper} elevation={1}>
             <Table size='small'>
                 <TableHead>
                     <TableRow>
-                        {headers2.map((title, i) => <TableCell key={i}>{title}</TableCell>)}
+                        <TableCell>Длина максимального фрагмента, пн</TableCell>
+                        <TableCell>Концентрация геномной библиотеки, нг/мкл</TableCell>
+                        <TableCell>Молярность геномной библиотеки, пмоль/л</TableCell>
+                        <TableCell>Время выхода максимального фрагмента, с</TableCell>
+                        <TableCell>Площадь геномной библиотеки * 10^7</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows2.map(row => (
+                    {rowsTotal.map(row => (
                         <TableRow
                             key={row.peaks_corr}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
@@ -68,11 +70,15 @@ const GenLibAnalyzedTable: React.FC<Props> = ({
                 </TableBody>
                 <TableHead>
                     <TableRow>
-                        {headers1.map((title, i) => <TableCell key={i}>{title}</TableCell>)}
+                        <TableCell>Длина фрагментов, пн</TableCell>
+                        <TableCell>Концентрация, нг/мкл</TableCell>
+                        <TableCell>Молярность, нмоль/л</TableCell>
+                        <TableCell>Время выхода, с</TableCell>
+                        <TableCell>Площадь * 10^7</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {rows1.map(row => (
+                    {rows.map(row => (
                         <TableRow
                             key={row.peaks_corr}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}

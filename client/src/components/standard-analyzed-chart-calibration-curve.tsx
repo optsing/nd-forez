@@ -7,33 +7,33 @@ interface Props {
     analyzeResult: AnalyzeResult
 }
 
-const StandardAnalyzedChart: React.FC<Props> = ({
+
+const StandardAnalyzedChartCalibrationCurve: React.FC<Props> = ({
     analyzeResult,
 }) => {
     const datasets: DatasetWithAnnotations[] = useMemo(() => {
         return [
             {
-                title: 'Интенсивность',
-                type: 'line',
+                title: 'Исходные данные',
+                type: 'point',
                 color: 'primary',
-                points: analyzeResult.ZrRef.map((y, x) => ({ x, y: y * 1e-6 })),
+                points: analyzeResult.sizes.map((x, i) => ({ x, y: analyzeResult.peak[i] })),
             },
             {
-                title: 'Пики',
-                type: 'point',
+                title: 'Подгонка полинома',
+                type: 'line',
                 color: 'secondary',
-                points: analyzeResult.peak.map(x => ({ x, y: analyzeResult.ZrRef[x] * 1e-6 })),
-                showLines: true,
-                lineValues: analyzeResult.sizes,
+                points: analyzeResult.liz_fit.map((x, i) => ({ x, y: analyzeResult.locs_fit[i] })),
             },
         ];
     }, [analyzeResult]);
-    
+
     return (
         <ChartWithZoom
             datasets={datasets}
+            yTitle='Время выхода, с'
         />
     );
 };
 
-export default StandardAnalyzedChart;
+export default StandardAnalyzedChartCalibrationCurve;

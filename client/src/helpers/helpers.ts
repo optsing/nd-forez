@@ -56,8 +56,8 @@ const CHART_DARK_THEME: ChartColors = {
 }
 
 interface UseChartOptionsProps {
-    yTitle?: string;
-    annotations?: AnnotationOptions[];
+    yTitle: string;
+    annotations: AnnotationOptions[];
 }
 
 export function useChartColors(): ChartColors {
@@ -67,7 +67,7 @@ export function useChartColors(): ChartColors {
     return isDarkMode ? CHART_DARK_THEME : CHART_LIGHT_THEME;
 }
 
-export function useChartOptions(chartColors: ChartColors, { yTitle, annotations }: UseChartOptionsProps = {}): ChartOptions<'line'> {
+export function useChartOptions(chartColors: ChartColors, { yTitle, annotations }: UseChartOptionsProps): ChartOptions<'line'> {
     return useMemo(() => {
         return {
             responsive: true,
@@ -87,7 +87,7 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
                 y: {
                     title: {
                         display: true,
-                        text: yTitle || 'Интенсивность * 10^6',
+                        text: yTitle,
                         color: chartColors.textColor,
                     },
                     type: 'linear',
@@ -134,6 +134,7 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
         };
     }, [chartColors, yTitle, annotations]);
 }
+
 
 export function CreateVerticalLines(points: Point[], titles: number[], chartColors: ChartColors, datasetColors: ChartDatasetColors): AnnotationOptions[] {
     const result: AnnotationOptions[] = [];

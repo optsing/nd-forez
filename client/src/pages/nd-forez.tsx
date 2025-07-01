@@ -1,13 +1,9 @@
-import React, { useState, ChangeEvent, useEffect } from 'react';
-import { Typography, CircularProgress, Fab, Box, Tabs, Tab } from '@mui/material';
+import { useState, ChangeEvent, useEffect } from 'react';
+import { Typography, CircularProgress, Fab, Box, Tabs, Tab, Button } from '@mui/material';
 import { Science, UploadFile } from '@mui/icons-material';
-import GenLibChart from '../components/genlib-chart';
-import StandardChart from '../components/standard-chart';
 import { AnalyzeResult, ParseResult } from '../models/models';
-import StandardAnalyzedChart from '../components/standard-analyzed-chart';
-import GenLibAnalyzedChart from '../components/genlib-analyzed-chart';
-import StandardAnalyzedTable from '../components/standard-analyzed-table';
-import GenLibAnalyzedTable from '../components/genlib-analyzed-table';
+import StandardAnalyzedChartContainer from '../components/standard-analyzed-chart-container';
+import GenLibAnalyzedChartContainer from '../components/genlib-analyzed-chart-container';
 import {
     Chart as ChartJS,
     LineElement,
@@ -21,8 +17,10 @@ import {
 import Zoom from 'chartjs-plugin-zoom';
 import Annotation from 'chartjs-plugin-annotation';
 import { useSearchParams } from 'react-router';
-import { analyzeData as PostAnalyze, getParseResult, parseFiles as PostParseFiles, getErrorMessage } from '../api';
+import { analyzeData, getParseResult, parseFiles, getErrorMessage } from '../api';
 import { useAlert } from '../context/alert-context';
+import StandardChartContainer from '../components/standard-chart-container';
+import GenLibChartContainer from '../components/genlib-chart-conainer';
 
 
 ChartJS.register(
@@ -46,7 +44,7 @@ const FileUploadPage: React.FC = () => {
     const showAlert = useAlert();
 
     const [currentTab, setCurrentTab] = useState<number>(0);
-
+    const [isCompactMode, setIsCompactMode] = useState<boolean>(true);
     const [selectedStandard, setSelectedStandard] = useState(0);
     const [selectedGenLibs, setSelectedGenLibs] = useState<boolean[]>([]);
     const [selectedGenLibsAnalyzed, setSelectedGenLibsAnalyzed] = useState(0);
@@ -93,7 +91,7 @@ const FileUploadPage: React.FC = () => {
         setAnalyzeResult(null);
 
         try {
-            const result = await PostParseFiles(files);
+            const result = await parseFiles(files);
             setParseResult(result);
             setSelectedStandard(0);
             setSelectedGenLibs(new Array(result.gen_libs.length).fill(true));
@@ -115,7 +113,7 @@ const FileUploadPage: React.FC = () => {
         setIsAnalysing(true);
         setAnalyzeResult(null);
         try {
-            const result = await PostAnalyze({
+            const result = await analyzeData({
                 size_standard: parseResult.size_standards[selectedStandard],
                 gen_libs: parseResult.gen_libs.filter((_, i) => selectedGenLibs[i]),
             });
@@ -146,44 +144,85 @@ const FileUploadPage: React.FC = () => {
             </Box>
 
             {currentTab == 0 && (parseResult
-                ? <Box margin={3} mb={10}>
-                    {parseResult.size_standards.length > 0 && <StandardChart
+                ? <Box sx={{
+                    marginX: {
+                        xs: 1,
+                        sm: 3,
+                        md: 6,
+                    },
+                    marginTop: 3,
+                    marginBottom: 12,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3,
+                }}>
+                    {parseResult.size_standards.length > 0 && <StandardChartContainer
                         sizeStandards={parseResult.size_standards}
-                        selectedStandard={selectedStandard}
-                        setSelectedStandard={setSelectedStandard}
+                        selected={selectedStandard}
+                        setSelected={setSelectedStandard}
                     />}
-                    {parseResult.gen_libs.length > 0 && <GenLibChart
+                    {parseResult.gen_libs.length > 0 && <GenLibChartContainer
                         genLibs={parseResult.gen_libs}
-                        selectedGenLibs={selectedGenLibs}
-                        setSelectedGenLibs={setSelectedGenLibs}
+                        selected={selectedGenLibs}
+                        setSelected={setSelectedGenLibs}
                     />}
                 </Box>
-                : (!isParsing && <Box margin={3} mb={10} display='flex' alignItems='center' justifyContent='center' height='100vh'>
-                    <Typography variant='h4' textAlign='center'>Выберите файлы для просмотра</Typography>
+                : (!isParsing && <Box sx={{
+                    marginX: {
+                        xs: 1,
+                        sm: 3,
+                        md: 6,
+                    },
+                    marginTop: 3,
+                    marginBottom: 12,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100vh',
+                }}>
+                    <Typography variant='h4' margin='auto' textAlign='center'>Выберите файлы для просмотра</Typography>
                 </Box>)
             )}
 
             {currentTab == 1 && analyzeResult && (
-                <Box margin={3} mb={10}>
-                    <StandardAnalyzedChart
-                        analyzeResult={analyzeResult}
-                    />
-                    <StandardAnalyzedTable
-                        analyzeResult={analyzeResult}
-                    />
-                    {analyzeResult.genlib_data.length > 0 &&
-                        <>
-                            <GenLibAnalyzedChart
+                <>
+                    <Box display='flex' justifyContent='right' sx={{
+                        display: 'flex',
+                        justifyContent: 'right',
+                        px: {
+                            xs: 1,
+                            sm: 3,
+                            md: 6,
+                        },
+                        py: 1,
+                    }}>
+                        <Button variant='outlined' onClick={() => setIsCompactMode(!isCompactMode)}>
+                            {isCompactMode ? 'Развернуть' : 'Свернуть'}
+                        </Button>
+                    </Box>
+                    <Box sx={{
+                        marginX: {
+                            xs: 1,
+                            sm: 3,
+                            md: 6,
+                        },
+                        marginBottom: 12,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 3,
+                    }}>
+                        <StandardAnalyzedChartContainer
+                            analyzeResult={analyzeResult}
+                            isCompactMode={isCompactMode}
+                        />
+                        {analyzeResult.genlib_data.length > 0 &&
+                            <GenLibAnalyzedChartContainer
                                 analyzeResultData={analyzeResult.genlib_data}
                                 selected={selectedGenLibsAnalyzed}
                                 setSelected={setSelectedGenLibsAnalyzed}
-                            />
-                            <GenLibAnalyzedTable
-                                analyzeResultData={analyzeResult.genlib_data}
-                                selected={selectedGenLibsAnalyzed}
-                            />
-                        </>}
-                </Box>
+                                isCompactMode={isCompactMode}
+                            />}
+                    </Box>
+                </>
             )}
 
             <Box

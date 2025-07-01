@@ -1,111 +1,79 @@
-import { Dispatch, SetStateAction, useEffect, useState } from 'react';
-import {
-    Typography,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-    FormControl,
-} from '@mui/material';
-import { ChartData } from 'chart.js';
+import { useMemo } from 'react';
 import { AnalyzeResultData } from '../models/models';
-import { CreateFilledDataset, CreateLineDataset, CreatePointDataset, CreateVerticalLines, useChartColors, useChartOptions } from '../helpers/helpers';
-import ChartContainer from './chart-container';
-import ChartWithZoom from './chart-with-zoom';
-import { AnnotationOptions } from 'chartjs-plugin-annotation';
-
+import ChartWithZoom, { DatasetWithAnnotations } from './chart-with-zoom';
 
 
 interface Props {
-    analyzeResultData: AnalyzeResultData[]
-    selected: number;
-    setSelected: Dispatch<SetStateAction<number>>;
+    analyzeResultData: AnalyzeResultData;
 }
+
 
 const GenLibAnalyzedChart: React.FC<Props> = ({
     analyzeResultData,
-    selected,
-    setSelected,
 }) => {
-    const [annotations, setAnnotations] = useState<AnnotationOptions[]>();
-
-    const chartColors = useChartColors();
-    const chartOptions = useChartOptions(chartColors, { annotations });
-
-    const [chartData, setChartData] = useState<ChartData<'line'> | null>(null);
-
-    useEffect(() => {
-        if (analyzeResultData.length === 0) return;
-        const source = analyzeResultData[selected];
-        const annotations: AnnotationOptions[] = [];
-        const data: ChartData<'line'> = {
-            datasets: [
-                CreateLineDataset('Интенсивность', source.t_main.map((x, i) => ({ x, y: source.denoised_data[i] * 1e-6})), chartColors.primary),
-            ],
-        };
-        if (source.st_peaks.length > 0) {
-            const peakPoints = source.st_peaks.map((x, i) => ({ x, y: source.denoised_data[source.st_length[i]] * 1e-6 }));
-            annotations.push(...CreateVerticalLines(peakPoints, source.stp, chartColors, chartColors.secondary));
-            data.datasets.push(
-                CreatePointDataset('Пики', peakPoints, chartColors.secondary, 'crossRot')
-            );
+    const datasets: DatasetWithAnnotations[] = useMemo(() => {
+        const result: DatasetWithAnnotations[] = [{
+            title: 'Интенсивность',
+            type: 'line',
+            points: analyzeResultData.t_main.map((x, i) => ({ x, y: analyzeResultData.denoised_data[i] * 1e-6 })),
+            color: 'primary',
+        }];
+        if (analyzeResultData.st_peaks.length > 0) {
+            result.push({
+                title: 'Пики',
+                color: 'secondary',
+                type: 'point',
+                pointStyle: 'crossRot',
+                points: analyzeResultData.st_peaks.map((x, i) => ({ x, y: analyzeResultData.denoised_data[analyzeResultData.st_length[i]] * 1e-6 })),
+                showLines: true,
+                lineValues: analyzeResultData.stp,
+            });
         }
-        if (source.t_unrecognized_peaks.length > 0) {
-            const peakPoints = source.t_unrecognized_peaks.map((x, i) => ({ x, y: source.denoised_data[source.unrecognized_peaks[i]] * 1e-6 }));
-            annotations.push(...CreateVerticalLines(peakPoints, source.unr, chartColors, chartColors.secondary));
-            data.datasets.push(
-                CreatePointDataset('Пики (неизвестные)', peakPoints, chartColors.secondary, 'cross')
-            );
+        if ( analyzeResultData.t_unrecognized_peaks.length > 0) {
+            result.push({
+                title: 'Пики (неизвестные)',
+                color: 'secondary',
+                type: 'point',
+                pointStyle: 'cross',
+                points: analyzeResultData.t_unrecognized_peaks.map((x, i) => ({ x, y: analyzeResultData.denoised_data[analyzeResultData.unrecognized_peaks[i]] * 1e-6 })),
+                showLines: true,
+                lineValues: analyzeResultData.unr,
+            });
         }
-        if (source.lib_length.length > 0) {
-            const peakPoints = source.lib_length.map((x, i) => ({ x, y: source.denoised_data[source.LibPeakLocations[i]] * 1e-6 }));
-            annotations.push(...CreateVerticalLines(peakPoints, source.hpx, chartColors, chartColors.secondary));
-            data.datasets.push(
-                CreatePointDataset('Пики (библиотека)', peakPoints, chartColors.secondary)
-            )
+        if (analyzeResultData.lib_length.length > 0) {
+            result.push({
+                title: 'Пики (библиотека)',
+                color: 'secondary',
+                type: 'point',
+                pointStyle: 'circle',
+                points: analyzeResultData.lib_length.map((x, i) => ({ x, y: analyzeResultData.denoised_data[analyzeResultData.LibPeakLocations[i]] * 1e-6 })),
+                showLines: true,
+                lineValues: analyzeResultData.hpx,
+            });
         }
-        if (source.x_fill.length > 0) {
-            data.datasets.push(
-                CreateFilledDataset('Заливка', source.x_fill.map((x, i) => ({ x, y: source.y_fill[i] * 1e-6 })), chartColors.secondary)
-            );
+        if (analyzeResultData.x_fill.length > 0) {
+            result.push({
+                title: 'Заливка',
+                color: 'secondary',
+                type: 'filled',
+                points: analyzeResultData.x_fill.map((x, i) => ({ x, y: analyzeResultData.y_fill[i] * 1e-6 })),
+            });
         }
-        if (source.x_Lib_fill.length > 0) {
-            data.datasets.push(
-                CreateFilledDataset('Заливка', source.x_Lib_fill.map((x, i) => ({ x, y: source.y_Lib_fill[i] * 1e-6 })), chartColors.secondary)
-            );
+        if (analyzeResultData.x_Lib_fill.length > 0) {
+            result.push({
+                title: 'Заливка',
+                color: 'secondary',
+                type: 'filled',
+                points: analyzeResultData.x_Lib_fill.map((x, i) => ({ x, y: analyzeResultData.y_Lib_fill[i] * 1e-6 })),
+            });
         }
-        setChartData(data);
-        setAnnotations(annotations);
-    }, [selected, analyzeResultData, chartColors])
+        return result;
+    }, [analyzeResultData])
 
     return (
-        <>
-            <Typography variant="h5" textAlign='center' gutterBottom>
-                Геномные библиотеки
-            </Typography>
-
-            {chartData && <ChartContainer
-                sidebar={<FormControl component="fieldset">
-                    <RadioGroup
-                        value={selected}
-                        onChange={(e) => setSelected(parseInt(e.target.value))}
-                    >
-                        {analyzeResultData.map((s, i) => (
-                            <FormControlLabel
-                                key={i}
-                                value={i}
-                                control={<Radio />}
-                                label={s.title}
-                            />
-                        ))}
-                    </RadioGroup>
-                </FormControl>}
-            >
-                <ChartWithZoom
-                    options={chartOptions}
-                    data={chartData}
-                />
-            </ChartContainer>}
-        </>
+        <ChartWithZoom
+            datasets={datasets}
+        />
     );
 };
 

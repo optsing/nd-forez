@@ -14,24 +14,27 @@ const ChartContainer: React.FC<PropsWithChildren<Props>> = ({
 
     return (
         <Box
-            display="flex"
-            flexDirection={isSmallScreen ? 'column' : 'row'}
+            sx={{
+                display: 'flex',
+                flexDirection: isSmallScreen ? 'column' : 'row',
+            }}
         >
-            <Box
+            {sidebar && <Box
                 flexShrink={0}
                 sx={{
                     width: isSmallScreen ? '100%' : '200px',
                 }}
             >
                 {sidebar}
-            </Box>
+            </Box>}
             <Box
+                display='flex'
+                flexDirection='column'
                 flexShrink={1}
                 flexGrow={1}
                 minWidth={0}
                 width="100%"
-                height="480px"
-                position="relative"
+                gap={3}
             >
                 {children}
             </Box>

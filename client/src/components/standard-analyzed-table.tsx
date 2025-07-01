@@ -1,5 +1,5 @@
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
-import React from "react";
+import React, { useMemo } from "react";
 import { AnalyzeResult } from "../models/models";
 import { round } from "../helpers/helpers";
 
@@ -16,28 +16,34 @@ interface TableRow {
     led: number;
 }
 
+
 const StandardAnalyzedTable: React.FC<Props> = ({
     analyzeResult,
 }) => {
-    const headers: string[] = ["Длина фрагментов, пн", "Концентрация, нг/мкл", "Молярность, нмоль/л", "Время выхода, с", "Площадь * 10^7"];
-    const rows: TableRow[] = [];
-
-    for (let i = 0; i < analyzeResult.sizes.length; i++) {
-        rows.push({
-            size: analyzeResult.sizes[i],
-            concentration: analyzeResult.concentrations[i],
-            molarity: round(analyzeResult.SD_molarity[i]),
-            peak: analyzeResult.peak[i],
-            led: round(analyzeResult.led_area[i] / 1e7),
-        });
-    }
+    const rows: TableRow[] = useMemo(() => {
+        const result: TableRow[] = [];
+        for (let i = 0; i < analyzeResult.sizes.length; i++) {
+            result.push({
+                size: analyzeResult.sizes[i],
+                concentration: analyzeResult.concentrations[i],
+                molarity: round(analyzeResult.SD_molarity[i]),
+                peak: analyzeResult.peak[i],
+                led: round(analyzeResult.led_area[i] * 1e-7),
+            });
+        }
+        return result;
+    }, [analyzeResult]);
 
     return (
-        <TableContainer component={Paper} sx={{ mt: 1, mb: 3 }}>
+        <TableContainer component={Paper} elevation={1}>
             <Table size='small'>
                 <TableHead>
                     <TableRow>
-                        {headers.map((title, i) => <TableCell key={i}>{title}</TableCell>)}
+                        <TableCell>Длина фрагментов, пн</TableCell>
+                        <TableCell>Концентрация, нг/мкл</TableCell>
+                        <TableCell>Молярность, нмоль/л</TableCell>
+                        <TableCell>Время выхода, с</TableCell>
+                        <TableCell>Площадь * 10^7</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -46,7 +52,7 @@ const StandardAnalyzedTable: React.FC<Props> = ({
                             key={row.size}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
-                            <TableCell>{row.size} </TableCell>
+                            <TableCell>{row.size}</TableCell>
                             <TableCell>{row.concentration}</TableCell>
                             <TableCell>{row.molarity}</TableCell>
                             <TableCell>{row.peak}</TableCell>
