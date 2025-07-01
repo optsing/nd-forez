@@ -29,7 +29,7 @@ const GenLibAnalyzedChart: React.FC<Props> = ({
                 lineValues: analyzeResultData.stp,
             });
         }
-        if ( analyzeResultData.t_unrecognized_peaks.length > 0) {
+        if (analyzeResultData.t_unrecognized_peaks.length > 0) {
             result.push({
                 title: 'Пики (неизвестные)',
                 color: 'secondary',

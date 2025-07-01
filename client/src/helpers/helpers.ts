@@ -128,7 +128,7 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
                     },
                 },
                 annotation: {
-                    annotations: annotations || [],
+                    annotations,
                 },
             },
         };
@@ -136,7 +136,7 @@ export function useChartOptions(chartColors: ChartColors, { yTitle, annotations 
 }
 
 
-export function CreateVerticalLines(points: Point[], titles: number[], chartColors: ChartColors, datasetColors: ChartDatasetColors): AnnotationOptions[] {
+export function CreateVerticalLines(datasetIndex: number, points: Point[], titles: number[], chartColors: ChartColors, datasetColors: ChartDatasetColors): AnnotationOptions[] {
     const result: AnnotationOptions[] = [];
     for (let i = 0; i < points.length; i++) {
         const p = points[i];
@@ -157,7 +157,8 @@ export function CreateVerticalLines(points: Point[], titles: number[], chartColo
                 xAdjust: -10,
                 yAdjust: -10,
             },
-        })
+            display: ctx => ctx.chart.isDatasetVisible(datasetIndex),
+        });
     }
     return result;
 }

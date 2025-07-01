@@ -67,7 +67,7 @@ const ChartWithZoom: React.FC<Props> = ({
             }
             if (dataset.showLines) {
                 annotations.push(
-                    ...CreateVerticalLines(dataset.points, dataset.lineValues, chartColors, color)
+                    ...CreateVerticalLines(i, dataset.points, dataset.lineValues, chartColors, color)
                 );
             }
         }
