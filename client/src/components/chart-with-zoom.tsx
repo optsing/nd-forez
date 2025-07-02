@@ -7,7 +7,7 @@ import { createChartOptions, DatasetWithAnnotations, prepareDataAndAnnotations, 
 
 type Props<T> = {
     rawData: T;
-    prepare: (data: T) => DatasetWithAnnotations[];
+    prepare: (rawData: T) => DatasetWithAnnotations[];
     yTitle?: string;
 };
 

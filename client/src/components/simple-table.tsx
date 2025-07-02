@@ -1,31 +1,30 @@
 import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
 import React, { useMemo } from "react";
-import { AnalyzeResult } from "../models/models";
-import { prepareStandardAnalyzedTable } from "../chart-data/chart-data";
+import { AnalyzedTable, prepareStandardAnalyzedTable } from "../chart-data/chart-data";
 
 
-interface Props {
-    analyzeResult: AnalyzeResult;
+interface Props<T> {
+    rawData: T;
+    prepare: (rawData: T) => AnalyzedTable;
 }
 
 
-const StandardAnalyzedTable: React.FC<Props> = ({
-    analyzeResult,
-}) => {
-    const rows = useMemo(() => {
-        return prepareStandardAnalyzedTable(analyzeResult);
-    }, [analyzeResult]);
+const SimpleTable = <T,>({
+    rawData,
+    prepare,
+}: Props<T>) => {
+    const { header, rows } = useMemo(() => prepare(rawData), [rawData, prepare]);
 
     return (
         <TableContainer component={Paper} elevation={1}>
             <Table size='small'>
                 <TableHead>
                     <TableRow>
-                        <TableCell>Длина фрагментов, пн</TableCell>
-                        <TableCell>Концентрация, нг/мкл</TableCell>
-                        <TableCell>Молярность, нмоль/л</TableCell>
-                        <TableCell>Время выхода, с</TableCell>
-                        <TableCell>Площадь * 10⁷</TableCell>
+                        <TableCell>{header.size}</TableCell>
+                        <TableCell>{header.concentration}</TableCell>
+                        <TableCell>{header.molarity}</TableCell>
+                        <TableCell>{header.peak}</TableCell>
+                        <TableCell>{header.area}</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -38,7 +37,7 @@ const StandardAnalyzedTable: React.FC<Props> = ({
                             <TableCell>{row.concentration}</TableCell>
                             <TableCell>{row.molarity}</TableCell>
                             <TableCell>{row.peak}</TableCell>
-                            <TableCell>{row.led}</TableCell>
+                            <TableCell>{row.area}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -47,4 +46,4 @@ const StandardAnalyzedTable: React.FC<Props> = ({
     );
 }
 
-export default StandardAnalyzedTable;
+export default SimpleTable;

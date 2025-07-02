@@ -57,7 +57,7 @@ const RecentPage: React.FC = () => {
         <Box m={3}>
             <Typography variant='h5' textAlign='center' gutterBottom>Последние открытые файлы</Typography>
             {isLoading && <Box textAlign='center'>
-                <CircularProgress />
+                <CircularProgress sx={{ mt: 3 }} />
             </Box>}
             {recentViews && recentViews.length === 0 && <Typography variant='h6' textAlign='center' gutterBottom>Нет недавно открытых файлов</Typography>}
             {recentViews && recentViews.length > 0 && <List component={Paper}>

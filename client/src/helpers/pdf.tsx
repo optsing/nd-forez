@@ -13,7 +13,7 @@ export type GenLibPdf = {
   title: string;
   chartImage: string;
   table: AnalyzedTable;
-  tableTotal: AnalyzedTable;
+  totalTable: AnalyzedTable;
 }
 
 async function renderChartToImage(datasets: DatasetWithAnnotations[], { yTitle }: { yTitle?: string } = {}): Promise<string> {
@@ -49,13 +49,14 @@ async function renderChartToImage(datasets: DatasetWithAnnotations[], { yTitle }
 
 export function useOffscreenChartsToPdf() {
   const showAlert = useAlert();
-  const [generatingPDF, setGeneratingPDF] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const generatePdf = async (analyzeResult: AnalyzeResult) => {
-    setGeneratingPDF(true);
+    if (isGeneratingPDF) return;
+    setIsGeneratingPDF(true);
     try {
       const { pdf } = await import('@react-pdf/renderer');
-      const { default: ReportPdf } = await import('../components/pdf/report');
+      const { default: ReportPdf } = await import('../components/pdf/report-pdf');
       const standardChart = await renderChartToImage(prepareStadardAnalyzedData(analyzeResult));
       const standardCalibrationCurve = await renderChartToImage(prepareStandardAnalyzedCalibrationCurve(analyzeResult));
       const genLibCharts: GenLibPdf[] = await Promise.all(analyzeResult.genlib_data.map(async genLib => (
@@ -63,7 +64,7 @@ export function useOffscreenChartsToPdf() {
           title: genLib.title,
           chartImage: await renderChartToImage(prepareGenLibAnalyzed(genLib)),
           table: prepareGenLibAnalyzedTable(genLib),
-          tableTotal: prepareGenLibAnalyzedTotalTable(genLib),
+          totalTable: prepareGenLibAnalyzedTotalTable(genLib),
         }
       )));
 
@@ -82,9 +83,9 @@ export function useOffscreenChartsToPdf() {
       console.error(err);
       showAlert('Не удалось создать отчет', 'error');
     } finally {
-      setGeneratingPDF(false);
+      setIsGeneratingPDF(false);
     }
   };
 
-  return { startPdfGeneration: generatePdf, generatingPDF };
+  return { generatePdf, isGeneratingPDF };
 }

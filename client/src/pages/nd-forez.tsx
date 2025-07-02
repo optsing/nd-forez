@@ -2,8 +2,8 @@ import { useState, ChangeEvent, useEffect } from 'react';
 import { Typography, CircularProgress, Fab, Box, Tabs, Tab, Button } from '@mui/material';
 import { Science, UploadFile, Assessment } from '@mui/icons-material';
 import { AnalyzeResult, ParseResult } from '../models/models';
-import StandardAnalyzedChartContainer from '../components/standard-analyzed-chart-container';
-import GenLibAnalyzedChartContainer from '../components/genlib-analyzed-chart-container';
+import StandardAnalyzedContainer from '../components/standard-analyzed-container';
+import GenLibAnalyzedContainer from '../components/genlib-analyzed-container';
 import {
     Chart as ChartJS,
     LineElement,
@@ -52,7 +52,7 @@ const FileUploadPage: React.FC = () => {
 
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const { startPdfGeneration, generatingPDF } = useOffscreenChartsToPdf();
+    const { generatePdf, isGeneratingPDF } = useOffscreenChartsToPdf();
 
     useEffect(() => {
         const fn = async (id: number) => {
@@ -202,8 +202,8 @@ const FileUploadPage: React.FC = () => {
                         <Button variant='outlined' onClick={() => setIsCompactMode(!isCompactMode)}>
                             {isCompactMode ? 'Развернуть' : 'Свернуть'}
                         </Button>
-                        <Button variant='contained' onClick={() => startPdfGeneration(analyzeResult)}>
-                            {generatingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Assessment sx={{ mr: 1 }} /> } Создать отчет
+                        <Button variant='contained' onClick={() => generatePdf(analyzeResult)}>
+                            {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Assessment sx={{ mr: 1 }} />} Создать отчет
                         </Button>
                     </Box>
                     <Box sx={{
@@ -217,12 +217,12 @@ const FileUploadPage: React.FC = () => {
                         flexDirection: 'column',
                         gap: 3,
                     }}>
-                        <StandardAnalyzedChartContainer
+                        <StandardAnalyzedContainer
                             analyzeResult={analyzeResult}
                             isCompactMode={isCompactMode}
                         />
                         {analyzeResult.genlib_data.length > 0 &&
-                            <GenLibAnalyzedChartContainer
+                            <GenLibAnalyzedContainer
                                 analyzeResultData={analyzeResult.genlib_data}
                                 selected={selectedGenLibsAnalyzed}
                                 setSelected={setSelectedGenLibsAnalyzed}

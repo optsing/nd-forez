@@ -10,9 +10,9 @@ import {
 } from '@mui/material';
 import { AnalyzeResultData } from '../models/models';
 import ChartContainer from './chart-container';
-import GenLibAnalyzedTable from './genlib-analyzed-table';
 import ChartWithZoom from './chart-with-zoom';
-import { prepareGenLibAnalyzed } from '../chart-data/chart-data';
+import { prepareGenLibAnalyzed, prepareGenLibAnalyzedTable, prepareGenLibAnalyzedTotalTable } from '../chart-data/chart-data';
+import SimpleTable from './simple-table';
 
 
 
@@ -68,8 +68,13 @@ const GenLibAnalyzedChartContainer: React.FC<Props> = ({
                         rawData={data}
                         prepare={prepareGenLibAnalyzed}
                     />
-                    <GenLibAnalyzedTable
-                        analyzeResultData={data}
+                    <SimpleTable
+                        rawData={data}
+                        prepare={prepareGenLibAnalyzedTable}
+                    />
+                    <SimpleTable
+                        rawData={data}
+                        prepare={prepareGenLibAnalyzedTotalTable}
                     />
                 </Paper>)}
             </ChartContainer>
