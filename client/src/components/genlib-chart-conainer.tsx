@@ -32,7 +32,7 @@ const GenLibChartContainer: React.FC<Props> = ({
         setSelected(new Array(genLibs.length).fill(checked));
     };
 
-    const handleGenLibChange = (index: number) => {
+    const handleSelect = (index: number) => {
         const updated = [...selected];
         updated[index] = !updated[index];
         setSelected(updated);
@@ -62,7 +62,7 @@ const GenLibChartContainer: React.FC<Props> = ({
                                 control={
                                     <Checkbox
                                         checked={selected[i]}
-                                        onChange={() => handleGenLibChange(i)}
+                                        onChange={() => handleSelect(i)}
                                     />
                                 }
                                 label={g.title}
@@ -73,7 +73,7 @@ const GenLibChartContainer: React.FC<Props> = ({
             >
                 <Paper sx={{ p: 2}}>
                     <ChartWithZoom
-                        rawData={genLibs}
+                        rawData={selectedGenLibs}
                         prepare={prepareGenLibs}
                     />
                 </Paper>

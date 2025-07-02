@@ -5,6 +5,10 @@ import { AnalyzedTable } from "../../chart-data/chart-data";
 const styles = StyleSheet.create({
     table: { width: 'auto', borderStyle: 'solid', borderRight: 1, borderBottom: 1 },
     row: { flexDirection: 'row' },
+    header: {
+        fontWeight: 'bold',
+        backgroundColor: '#add8e6',
+    },
     cell: {
         borderStyle: 'solid',
         borderTopWidth: 1,
@@ -12,6 +16,7 @@ const styles = StyleSheet.create({
         padding: 4,
         flexGrow: 1,
         textAlign: 'center',
+        width: '20%',
     },
 });
 
@@ -30,19 +35,19 @@ const ReportTable = ({
         <View style={style} wrap={false}>
             <View style={styles.table}>
                 <View style={styles.row}>
-                    <Text style={[styles.cell, { fontWeight: 'bold', backgroundColor: '#add8e6', width: 100 }]}>{tableData.header.size}</Text>
-                    <Text style={[styles.cell, { fontWeight: 'bold', backgroundColor: '#add8e6', width: 100 }]}>{tableData.header.concentration}</Text>
-                    <Text style={[styles.cell, { fontWeight: 'bold', backgroundColor: '#add8e6', width: 100 }]}>{tableData.header.molarity}</Text>
-                    <Text style={[styles.cell, { fontWeight: 'bold', backgroundColor: '#add8e6', width: 100 }]}>{tableData.header.peak}</Text>
-                    <Text style={[styles.cell, { fontWeight: 'bold', backgroundColor: '#add8e6', width: 100 }]}>{tableData.header.area}</Text>
+                    <Text style={[styles.cell, styles.header]}>{tableData.header.size}</Text>
+                    <Text style={[styles.cell, styles.header]}>{tableData.header.concentration}</Text>
+                    <Text style={[styles.cell, styles.header]}>{tableData.header.molarity}</Text>
+                    <Text style={[styles.cell, styles.header]}>{tableData.header.peak}</Text>
+                    <Text style={[styles.cell, styles.header]}>{tableData.header.area}</Text>
                 </View>
                 {tableData.rows.map(row => (
                     <View key={row.size} style={styles.row}>
-                        <Text style={[styles.cell, { width: 100 }]}>{row.size}</Text>
-                        <Text style={[styles.cell, { width: 100 }]}>{row.concentration}</Text>
-                        <Text style={[styles.cell, { width: 100 }]}>{row.molarity}</Text>
-                        <Text style={[styles.cell, { width: 100 }]}>{row.peak}</Text>
-                        <Text style={[styles.cell, { width: 100 }]}>{row.area}</Text>
+                        <Text style={styles.cell}>{row.size}</Text>
+                        <Text style={styles.cell}>{row.concentration}</Text>
+                        <Text style={styles.cell}>{row.molarity}</Text>
+                        <Text style={styles.cell}>{row.peak}</Text>
+                        <Text style={styles.cell}>{row.area}</Text>
                     </View>
                 ))}
             </View>

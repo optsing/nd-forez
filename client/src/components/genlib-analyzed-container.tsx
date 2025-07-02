@@ -65,16 +65,18 @@ const GenLibAnalyzedChartContainer: React.FC<Props> = ({
                         Геномная библиотека: {data.title}
                     </Typography>
                     <ChartWithZoom
+                        sx={{ mb: 3 }}
                         rawData={data}
                         prepare={prepareGenLibAnalyzed}
                     />
                     <SimpleTable
+                        sx={{ mb: 3 }}
                         rawData={data}
-                        prepare={prepareGenLibAnalyzedTable}
+                        prepare={prepareGenLibAnalyzedTotalTable}
                     />
                     <SimpleTable
                         rawData={data}
-                        prepare={prepareGenLibAnalyzedTotalTable}
+                        prepare={prepareGenLibAnalyzedTable}
                     />
                 </Paper>)}
             </ChartContainer>

@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, SxProps, Theme } from "@mui/material";
 import { useMemo, useRef } from "react"
 import { Line } from "react-chartjs-2"
 import { createChartOptions, DatasetWithAnnotations, prepareDataAndAnnotations, useChartColors } from "../helpers/chart";
@@ -9,12 +9,14 @@ type Props<T> = {
     rawData: T;
     prepare: (rawData: T) => DatasetWithAnnotations[];
     yTitle?: string;
+    sx?: SxProps<Theme>;
 };
 
 const ChartWithZoom = <T,>({
     rawData,
     prepare,
     yTitle,
+    sx,
 }: Props<T>) => {
     const chartRef = useRef<any>(null);
     const handleDoubleClick = () => {
@@ -24,7 +26,7 @@ const ChartWithZoom = <T,>({
     const datasets = useMemo(() => prepare(rawData), [rawData, prepare]);
 
     const chartColors = useChartColors();
-    
+
     const [data, annotations] = useMemo(() => {
         return prepareDataAndAnnotations(datasets, chartColors);
     }, [datasets, chartColors]);
@@ -34,12 +36,14 @@ const ChartWithZoom = <T,>({
     }, [chartColors, yTitle, annotations]);
 
     return (
-        <Box sx={{
-            position: "relative",
-            width: '100%',
-            height: '480px',
-            mb: 3,
-        }}
+        <Box sx={[
+            {
+                position: 'relative',
+                width: '100%',
+                height: '480px',
+            },
+            ...(Array.isArray(sx) ? sx : [sx]),
+        ]}
         >
             <Line
                 options={options}

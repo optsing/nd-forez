@@ -1,30 +1,32 @@
-import { Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
-import React, { useMemo } from "react";
-import { AnalyzedTable, prepareStandardAnalyzedTable } from "../chart-data/chart-data";
+import { Paper, SxProps, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from "@mui/material";
+import { useMemo } from "react";
+import { AnalyzedTable } from "../chart-data/chart-data";
 
 
 interface Props<T> {
     rawData: T;
     prepare: (rawData: T) => AnalyzedTable;
+    sx?: SxProps;
 }
 
 
 const SimpleTable = <T,>({
     rawData,
     prepare,
+    sx,
 }: Props<T>) => {
     const { header, rows } = useMemo(() => prepare(rawData), [rawData, prepare]);
 
     return (
-        <TableContainer component={Paper} elevation={1}>
+        <TableContainer component={Paper} elevation={1} sx={sx}>
             <Table size='small'>
                 <TableHead>
                     <TableRow>
-                        <TableCell>{header.size}</TableCell>
-                        <TableCell>{header.concentration}</TableCell>
-                        <TableCell>{header.molarity}</TableCell>
-                        <TableCell>{header.peak}</TableCell>
-                        <TableCell>{header.area}</TableCell>
+                        <TableCell sx={{ width: '20%' }}>{header.size}</TableCell>
+                        <TableCell sx={{ width: '20%' }}>{header.concentration}</TableCell>
+                        <TableCell sx={{ width: '20%' }}>{header.molarity}</TableCell>
+                        <TableCell sx={{ width: '20%' }}>{header.peak}</TableCell>
+                        <TableCell sx={{ width: '20%' }}>{header.area}</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
@@ -33,11 +35,11 @@ const SimpleTable = <T,>({
                             key={row.size}
                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
-                            <TableCell>{row.size}</TableCell>
-                            <TableCell>{row.concentration}</TableCell>
-                            <TableCell>{row.molarity}</TableCell>
-                            <TableCell>{row.peak}</TableCell>
-                            <TableCell>{row.area}</TableCell>
+                            <TableCell sx={{ width: '20%' }}>{row.size}</TableCell>
+                            <TableCell sx={{ width: '20%' }}>{row.concentration}</TableCell>
+                            <TableCell sx={{ width: '20%' }}>{row.molarity}</TableCell>
+                            <TableCell sx={{ width: '20%' }}>{row.peak}</TableCell>
+                            <TableCell sx={{ width: '20%' }}>{row.area}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

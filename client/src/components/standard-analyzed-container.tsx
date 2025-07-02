@@ -62,6 +62,7 @@ const StandardAnalyzedChartContainer: React.FC<Props> = ({
                         <ChartWithZoom
                             rawData={analyzeResult}
                             prepare={prepareStadardAnalyzedData}
+                            sx={{ mb: 3 }}
                         />
                     </Box>}
                     {(!isCompactMode || selected === 1) && <Box>
@@ -72,6 +73,7 @@ const StandardAnalyzedChartContainer: React.FC<Props> = ({
                             rawData={analyzeResult}
                             prepare={prepareStandardAnalyzedCalibrationCurve}
                             yTitle='Время выхода, с'
+                            sx={{ mb: 3 }}
                         />
                     </Box>}
                     <SimpleTable
