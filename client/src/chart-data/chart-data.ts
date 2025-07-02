@@ -22,6 +22,7 @@ export function prepareStadardAnalyzedData(analyzeResult: AnalyzeResult): Datase
             type: 'line',
             color: 'primary',
             points: analyzeResult.ZrRef.map((y, x) => ({ x, y: y * 1e-6 })),
+            showChromatogram: true,
         },
         {
             title: 'Пики',
@@ -67,6 +68,7 @@ export function prepareGenLibAnalyzed(analyzeResultData: AnalyzeResultData): Dat
         title: 'Интенсивность',
         type: 'line',
         points: analyzeResultData.t_main.map((x, i) => ({ x, y: analyzeResultData.denoised_data[i] * 1e-6 })),
+        showChromatogram: true,
         color: 'primary',
     }];
     if (analyzeResultData.st_peaks.length > 0) {

@@ -2,11 +2,13 @@ import { ChartData, ChartDataset, ChartOptions, Point, PointStyle } from "chart.
 import { AnnotationOptions } from "chartjs-plugin-annotation";
 import { round } from "./helpers";
 import { useColorScheme, useMediaQuery } from "@mui/material";
+import { buildChromatogram } from "./chromatogram";
 
 type BaseDataset = {
     title: string;
     color?: 'primary' | 'secondary';
     points: Point[];
+    showChromatogram?: boolean;
 }
 
 type NonPointDatasetExtra = {
@@ -18,12 +20,12 @@ type PointDatasetExtra = {
     pointStyle?: PointStyle;
 }
 
-type WithLines = BaseDataset & {
+type WithLines = {
     showLines: true;
     lineValues: number[];
 };
 
-type WithoutLines = BaseDataset & {
+type WithoutLines = {
     showLines?: false;
 };
 
@@ -86,21 +88,27 @@ export function useChartColors(): ChartColors {
 interface ChartOptionsExtraProps {
     yTitle?: string;
     annotations: AnnotationOptions[];
+    chromatogram: number[];
     disableAnimation: boolean;
     disableZoom: boolean;
 }
 
-export function createChartOptions(chartColors: ChartColors, { yTitle, annotations, disableAnimation, disableZoom }: ChartOptionsExtraProps): ChartOptions<'line'> {
+export function createChartOptions(chartColors: ChartColors, { yTitle, annotations, chromatogram, disableAnimation, disableZoom }: ChartOptionsExtraProps): ChartOptions<'line'> {
     return {
         responsive: true,
         normalized: true,
         maintainAspectRatio: false,
         animation: disableAnimation ? false : undefined,
+        layout: {
+            padding: {
+                right: chromatogram.length > 0 ? 40 : 0,
+            }
+        },
         scales: {
             x: {
                 type: 'linear',
                 ticks: {
-                    display: true,
+                    display: false,
                     color: chartColors.textColor,
                 },
                 grid: {
@@ -153,6 +161,11 @@ export function createChartOptions(chartColors: ChartColors, { yTitle, annotatio
             },
             annotation: {
                 annotations,
+            },
+            chromatogram: {
+                data: chromatogram,
+                maxGray: 245,
+                width: 40,
             },
         },
     };
@@ -227,9 +240,10 @@ export function createFilledDataset(title: string, points: Point[], datasetColor
     }
 }
 
-export function prepareDataAndAnnotations(datasets: DatasetWithAnnotations[], chartColors: ChartColors): [ChartData<'line'>, AnnotationOptions[]] {
+export function prepareDataAndAnnotations(datasets: DatasetWithAnnotations[], chartColors: ChartColors): [ChartData<'line'>, AnnotationOptions[], number[]] {
     const data: ChartDataset<'line'>[] = [];
     const annotations: AnnotationOptions[] = [];
+    const chromatogram: number[] = [];
     for (let i = 0; i < datasets.length; i++) {
         const dataset = datasets[i];
         const color = dataset.color === 'secondary' ? chartColors.secondary : chartColors.primary;
@@ -251,6 +265,11 @@ export function prepareDataAndAnnotations(datasets: DatasetWithAnnotations[], ch
                 ...createVerticalLines(i, dataset.points, dataset.lineValues, chartColors, color)
             );
         }
+        if (dataset.showChromatogram) {
+            chromatogram.push(
+                ...buildChromatogram(dataset.points)
+            );
+        }
     }
-    return [{ datasets: data }, annotations];
+    return [{ datasets: data }, annotations, chromatogram];
 }

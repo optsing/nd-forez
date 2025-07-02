@@ -17,10 +17,10 @@ export type GenLibPdf = {
 }
 
 async function renderChartToImage(datasets: DatasetWithAnnotations[], { yTitle }: { yTitle?: string } = {}): Promise<string> {
-  const offscreenCanvas = new OffscreenCanvas(1000, 600);
+  const offscreenCanvas = new OffscreenCanvas(800, 480);
 
-  const [data, annotations] = prepareDataAndAnnotations(datasets, CHART_LIGHT_THEME);
-  const options = createChartOptions(CHART_LIGHT_THEME, { yTitle, annotations, disableAnimation: true, disableZoom: true });
+  const [data, annotations, chromatogram] = prepareDataAndAnnotations(datasets, CHART_LIGHT_THEME);
+  const options = createChartOptions(CHART_LIGHT_THEME, { yTitle, annotations, chromatogram, disableAnimation: true, disableZoom: true });
 
   const chart = new Chart(offscreenCanvas as unknown as HTMLCanvasElement, {
     type: 'line',

@@ -22,6 +22,7 @@ import { useAlert } from '../context/alert-context';
 import StandardChartContainer from '../components/standard-chart-container';
 import GenLibChartContainer from '../components/genlib-chart-conainer';
 import { useOffscreenChartsToPdf } from '../helpers/pdf';
+import { Chromatogram } from '../helpers/chromatogram';
 
 
 ChartJS.register(
@@ -34,6 +35,7 @@ ChartJS.register(
     Legend,
     Zoom,
     Annotation,
+    Chromatogram,
 );
 
 

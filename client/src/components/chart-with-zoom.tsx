@@ -27,12 +27,12 @@ const ChartWithZoom = <T,>({
 
     const chartColors = useChartColors();
 
-    const [data, annotations] = useMemo(() => {
+    const [data, annotations, chromatogram] = useMemo(() => {
         return prepareDataAndAnnotations(datasets, chartColors);
     }, [datasets, chartColors]);
 
     const options = useMemo(() => {
-        return createChartOptions(chartColors, { yTitle, annotations, disableAnimation: false, disableZoom: false });
+        return createChartOptions(chartColors, { yTitle, annotations, chromatogram, disableAnimation: false, disableZoom: false });
     }, [chartColors, yTitle, annotations]);
 
     return (
