@@ -40,9 +40,11 @@ export const Chromatogram: Plugin = {
         if (!options.data || options.data.length === 0) return;
         const { ctx, chartArea } = chart;
         const data = options.data;
-        const width = options.width || 20;
         const maxGray = options.maxGray || 245;
-        const xRight = chartArea.right + 5;
+        const rectLeft = chartArea.right + 5;
+        const rectTop = chartArea.top;
+        const rectWidth = options.width || 20;
+        const chartHeight = chartArea.height;
 
         const yStep = chartArea.height / data.length;
 
@@ -51,8 +53,8 @@ export const Chromatogram: Plugin = {
             const gray = `rgb(${intensity},${intensity},${intensity})`;
             ctx.fillStyle = gray;
 
-            const yPos = chartArea.top + (data.length - 1 - i) * yStep;
-            ctx.fillRect(xRight, yPos - 0.5, width, yStep + 0.5);
+            const rectHeight = chartHeight - i * yStep;
+            ctx.fillRect(rectLeft, rectTop, rectWidth, rectHeight);
         }
     },
 };
