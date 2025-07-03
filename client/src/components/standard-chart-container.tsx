@@ -18,12 +18,14 @@ interface Props {
     sizeStandards: SizeStandard[];
     selected: number;
     setSelected: Dispatch<SetStateAction<number>>;
+    chartHeight: number;
 }
 
 const StandardChartContainer: React.FC<Props> = ({
     sizeStandards,
     selected,
     setSelected,
+    chartHeight,
 }) => {
     return (
         <Box>
@@ -50,6 +52,7 @@ const StandardChartContainer: React.FC<Props> = ({
             >
                 <Paper sx={{ p: 2 }}>
                     <ChartWithZoom
+                        height={chartHeight}
                         rawData={sizeStandards[selected]}
                         prepare={prepareStadardData}
                     />

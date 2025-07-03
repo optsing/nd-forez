@@ -12,18 +12,20 @@ import { AnalyzeResult } from '../models/models';
 import ChartContainer from './chart-container';
 import SimpleTable from './simple-table';
 import ChartWithZoom from './chart-with-zoom';
-import { prepareGenLibAnalyzedTable, prepareStadardAnalyzedData, prepareStandardAnalyzedCalibrationCurve, prepareStandardAnalyzedTable } from '../chart-data/chart-data';
+import { prepareStadardAnalyzedData, prepareStandardAnalyzedCalibrationCurve, prepareStandardAnalyzedTable } from '../chart-data/chart-data';
 
 
 interface Props {
     analyzeResult: AnalyzeResult;
-    isCompactMode?: boolean;
+    isCompactMode: boolean;
+    chartHeight: number;
 }
 
 
 const StandardAnalyzedChartContainer: React.FC<Props> = ({
     analyzeResult,
-    isCompactMode = false,
+    isCompactMode,
+    chartHeight,
 }) => {
     const [selected, setSelected] = useState<number>(0);
 
@@ -63,6 +65,7 @@ const StandardAnalyzedChartContainer: React.FC<Props> = ({
                             rawData={analyzeResult}
                             prepare={prepareStadardAnalyzedData}
                             sx={{ mb: 3 }}
+                            height={chartHeight}
                         />
                     </Box>}
                     {(!isCompactMode || selected === 1) && <Box>
@@ -74,6 +77,7 @@ const StandardAnalyzedChartContainer: React.FC<Props> = ({
                             prepare={prepareStandardAnalyzedCalibrationCurve}
                             yTitle='Время выхода, с'
                             sx={{ mb: 3 }}
+                            height={chartHeight}
                         />
                     </Box>}
                     <SimpleTable

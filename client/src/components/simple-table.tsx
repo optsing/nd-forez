@@ -18,7 +18,7 @@ const SimpleTable = <T,>({
     const { header, rows } = useMemo(() => prepare(rawData), [rawData, prepare]);
 
     return (
-        <TableContainer component={Paper} elevation={1} sx={sx}>
+        <TableContainer sx={sx}>
             <Table size='small'>
                 <TableHead>
                     <TableRow>

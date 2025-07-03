@@ -39,6 +39,8 @@ ChartJS.register(
 );
 
 
+const chartHeight = 480;
+
 const FileUploadPage: React.FC = () => {
     const [isParsing, setIsParsing] = useState<boolean>(false);
     const [parseResult, setParseResult] = useState<ParseResult | null>(null);
@@ -165,11 +167,13 @@ const FileUploadPage: React.FC = () => {
                         sizeStandards={parseResult.size_standards}
                         selected={selectedStandard}
                         setSelected={setSelectedStandard}
+                        chartHeight={chartHeight}
                     />}
                     {parseResult.gen_libs.length > 0 && <GenLibChartContainer
                         genLibs={parseResult.gen_libs}
                         selected={selectedGenLibs}
                         setSelected={setSelectedGenLibs}
+                        chartHeight={chartHeight}
                     />}
                 </Box>
                 : (!isParsing && <Box sx={{
@@ -222,6 +226,7 @@ const FileUploadPage: React.FC = () => {
                         <StandardAnalyzedContainer
                             analyzeResult={analyzeResult}
                             isCompactMode={isCompactMode}
+                            chartHeight={chartHeight}
                         />
                         {analyzeResult.genlib_data.length > 0 &&
                             <GenLibAnalyzedContainer
@@ -229,6 +234,7 @@ const FileUploadPage: React.FC = () => {
                                 selected={selectedGenLibsAnalyzed}
                                 setSelected={setSelectedGenLibsAnalyzed}
                                 isCompactMode={isCompactMode}
+                                chartHeight={chartHeight}
                             />}
                     </Box>
                 </>

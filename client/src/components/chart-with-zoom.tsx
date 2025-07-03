@@ -9,6 +9,7 @@ type Props<T> = {
     rawData: T;
     prepare: (rawData: T) => DatasetWithAnnotations[];
     yTitle?: string;
+    height: number;
     sx?: SxProps<Theme>;
 };
 
@@ -16,6 +17,7 @@ const ChartWithZoom = <T,>({
     rawData,
     prepare,
     yTitle,
+    height,
     sx,
 }: Props<T>) => {
     const chartRef = useRef<any>(null);
@@ -40,7 +42,7 @@ const ChartWithZoom = <T,>({
             {
                 position: 'relative',
                 width: '100%',
-                height: '480px',
+                height: `${height}px`
             },
             ...(Array.isArray(sx) ? sx : [sx]),
         ]}

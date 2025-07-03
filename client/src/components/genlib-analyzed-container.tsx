@@ -20,7 +20,8 @@ interface Props {
     analyzeResultData: AnalyzeResultData[];
     selected: number;
     setSelected: Dispatch<SetStateAction<number>>;
-    isCompactMode?: boolean;
+    isCompactMode: boolean;
+    chartHeight: number;
 }
 
 const GenLibAnalyzedChartContainer: React.FC<Props> = ({
@@ -28,6 +29,7 @@ const GenLibAnalyzedChartContainer: React.FC<Props> = ({
     selected,
     setSelected,
     isCompactMode,
+    chartHeight,
 }) => {
     const data: AnalyzeResultData[] = useMemo(() => {
         if (isCompactMode) {
@@ -66,6 +68,7 @@ const GenLibAnalyzedChartContainer: React.FC<Props> = ({
                     </Typography>
                     <ChartWithZoom
                         sx={{ mb: 3 }}
+                        height={chartHeight}
                         rawData={data}
                         prepare={prepareGenLibAnalyzed}
                     />

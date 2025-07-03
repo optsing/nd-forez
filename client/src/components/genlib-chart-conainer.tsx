@@ -16,12 +16,14 @@ interface Props {
     genLibs: GenLib[];
     selected: boolean[];
     setSelected: Dispatch<SetStateAction<boolean[]>>;
+    chartHeight: number;
 }
 
 const GenLibChartContainer: React.FC<Props> = ({
     genLibs,
     selected,
     setSelected,
+    chartHeight,
 }) => {
     const selectedGenLibs = useMemo(() => {
         return genLibs.filter((_, i) => selected[i]);
@@ -71,8 +73,9 @@ const GenLibChartContainer: React.FC<Props> = ({
                     </FormGroup>
                 }
             >
-                <Paper sx={{ p: 2}}>
+                <Paper sx={{ p: 2 }}>
                     <ChartWithZoom
+                        height={chartHeight}
                         rawData={selectedGenLibs}
                         prepare={prepareGenLibs}
                     />
