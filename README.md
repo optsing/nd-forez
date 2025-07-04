@@ -1,5 +1,9 @@
 # ND Forez
 
+## 🚀 Live Preview
+
+👉 [View on GitHub Pages](https://optsing.github.io/nd-forez/)
+
 ## Requirements
 
 Make sure the following are installed on your machine:
