@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Box, CircularProgress, List, ListItemButton, ListItemText, Paper, Typography } from "@mui/material";
 import { getErrorMessage, getParseResults } from "../api";
 import { useAlert } from "../context/alert-context";
+import { Link } from "react-router";
 
 interface ParseResultView {
     id: number;
@@ -62,7 +63,7 @@ const RecentPage: React.FC = () => {
             {recentViews && recentViews.length === 0 && <Typography variant='h6' textAlign='center' gutterBottom>Нет недавно открытых файлов</Typography>}
             {recentViews && recentViews.length > 0 && <List component={Paper}>
                 {recentViews.map(item => (
-                    <ListItemButton key={item.id} href={`/?id=${item.id}`}>
+                    <ListItemButton component={Link} key={item.id} to={`/?id=${item.id}`}>
                         <ListItemText primary={item.title} secondary={item.subtitle} />
                     </ListItemButton>
                 ))}

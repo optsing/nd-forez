@@ -1,6 +1,8 @@
+import icon from './../assets/icon.svg';
+
 const Logo: React.FC = () => {
     return (
-        <img src='/assets/icon.svg' width='40px' height='40px' />
+        <img src={icon} width='40px' height='40px' />
     )
 }
 
