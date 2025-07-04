@@ -1,6 +1,6 @@
 import { useState, ChangeEvent, useEffect } from 'react';
-import { Typography, CircularProgress, Fab, Box, Tabs, Tab, Button } from '@mui/material';
-import { Science, UploadFile, Assessment } from '@mui/icons-material';
+import { Typography, CircularProgress, Fab, Box, Tabs, Tab } from '@mui/material';
+import { ScienceTwoTone, UnfoldMoreTwoTone, UnfoldLessTwoTone, UploadFileTwoTone, AssessmentTwoTone } from '@mui/icons-material';
 import { AnalyzeResult, ParseResult } from '../models/models';
 import StandardAnalyzedContainer from '../components/standard-analyzed-container';
 import GenLibAnalyzedContainer from '../components/genlib-analyzed-container';
@@ -193,51 +193,32 @@ const FileUploadPage: React.FC = () => {
             )}
 
             {currentTab == 1 && analyzeResult && (
-                <>
-                    <Box display='flex' justifyContent='right' sx={{
-                        display: 'flex',
-                        justifyContent: 'right',
-                        px: {
-                            xs: 1,
-                            sm: 3,
-                            md: 6,
-                        },
-                        py: 1,
-                        gap: 1,
-                    }}>
-                        <Button variant='outlined' onClick={() => setIsCompactMode(!isCompactMode)}>
-                            {isCompactMode ? 'Развернуть' : 'Свернуть'}
-                        </Button>
-                        <Button variant='contained' onClick={() => generatePdf(analyzeResult)}>
-                            {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Assessment sx={{ mr: 1 }} />} Создать отчет
-                        </Button>
-                    </Box>
-                    <Box sx={{
-                        marginX: {
-                            xs: 1,
-                            sm: 3,
-                            md: 6,
-                        },
-                        marginBottom: 12,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 3,
-                    }}>
-                        <StandardAnalyzedContainer
-                            analyzeResult={analyzeResult}
+                <Box sx={{
+                    marginX: {
+                        xs: 1,
+                        sm: 3,
+                        md: 6,
+                    },
+                    marginTop: 3,
+                    marginBottom: 12,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3,
+                }}>
+                    <StandardAnalyzedContainer
+                        analyzeResult={analyzeResult}
+                        isCompactMode={isCompactMode}
+                        chartHeight={chartHeight}
+                    />
+                    {analyzeResult.genlib_data.length > 0 &&
+                        <GenLibAnalyzedContainer
+                            analyzeResultData={analyzeResult.genlib_data}
+                            selected={selectedGenLibsAnalyzed}
+                            setSelected={setSelectedGenLibsAnalyzed}
                             isCompactMode={isCompactMode}
                             chartHeight={chartHeight}
-                        />
-                        {analyzeResult.genlib_data.length > 0 &&
-                            <GenLibAnalyzedContainer
-                                analyzeResultData={analyzeResult.genlib_data}
-                                selected={selectedGenLibsAnalyzed}
-                                setSelected={setSelectedGenLibsAnalyzed}
-                                isCompactMode={isCompactMode}
-                                chartHeight={chartHeight}
-                            />}
-                    </Box>
-                </>
+                        />}
+                </Box>
             )}
 
             <Box
@@ -249,24 +230,46 @@ const FileUploadPage: React.FC = () => {
                     bottom: '2em',
                 }}
             >
-                <Fab
-                    variant="extended"
-                    color="primary"
-                    component='label'
-                >
-                    {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <UploadFile />}
-                    Выбрать файлы
-                    <input type="file" hidden multiple onChange={handleFileChange} />
-                </Fab>
-                <Fab
-                    variant="extended"
-                    color="secondary"
-                    onClick={handleAnalyzeClick}
-                    disabled={!parseResult || parseResult.size_standards.length === 0}
-                >
-                    {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <Science sx={{ mr: 1 }} />}
-                    Анализ
-                </Fab>
+                {currentTab === 0 && <>
+                    <Fab
+                        variant="extended"
+                        color="primary"
+                        component='label'
+                    >
+                        {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <UploadFileTwoTone sx={{ mr: 1 }} />}
+                        Файлы
+                        <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
+                    </Fab>
+                    <Fab
+                        variant="extended"
+                        color="secondary"
+                        onClick={handleAnalyzeClick}
+                        disabled={!parseResult || parseResult.size_standards.length === 0}
+                    >
+                        {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
+                        Анализ
+                    </Fab>
+                </>}
+                {currentTab === 1 && analyzeResult && <>
+                    <Fab
+                        variant="extended"
+                        color="primary"
+                        component='label'
+                        onClick={() => setIsCompactMode(!isCompactMode)}
+                    >
+                        {isCompactMode ? <UnfoldMoreTwoTone sx={{ mr: 1 }} /> : <UnfoldLessTwoTone sx={{ mr: 1 }} />}
+                        {isCompactMode ? 'Развернуть' : 'Свернуть'}
+                    </Fab>
+                    <Fab
+                        variant="extended"
+                        color="secondary"
+                        onClick={() => generatePdf(analyzeResult)}
+                        disabled={!parseResult || parseResult.size_standards.length === 0}
+                    >
+                        {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AssessmentTwoTone sx={{ mr: 1 }} />}
+                        Отчет
+                    </Fab>
+                </>}
             </Box>
         </>
     );

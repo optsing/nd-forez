@@ -1,4 +1,4 @@
-import { Api, AreaChart, History } from '@mui/icons-material';
+import { ApiTwoTone, AreaChartTwoTone, HistoryTwoTone } from '@mui/icons-material';
 import { Outlet } from 'react-router';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import type { Navigation, Branding, AppTheme } from '@toolpad/core/AppProvider';
@@ -9,16 +9,16 @@ import { createTheme } from '@mui/material/styles';
 const NAVIGATION: Navigation = [
   {
     title: 'Анализ',
-    icon: <AreaChart />,
+    icon: <AreaChartTwoTone />,
   },
   {
     title: 'Недавние',
-    icon: <History />,
+    icon: <HistoryTwoTone />,
     segment: 'recent',
   },
   {
     title: 'API',
-    icon: <Api />,
+    icon: <ApiTwoTone />,
     segment: 'api-doc',
   }
 ];
