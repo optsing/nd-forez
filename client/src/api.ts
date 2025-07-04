@@ -1,6 +1,6 @@
 import { AnalyzeInput, AnalyzeResult, ParseResult, ParseResultDescription } from "./models/models";
 
-export const API_URL = import.meta.env.DEV ? 'http://localhost:8000' : '';
+export const API_URL = import.meta.env.VITE_API_URL;
 
 export class APIError extends Error {
     status: number;
@@ -31,7 +31,7 @@ export function getErrorMessage(err: unknown) {
 export async function parseFiles(files: File[]): Promise<ParseResult> {
     const formData = new FormData();
     files.forEach((file) => formData.append('files', file));
-    const response = await fetch(API_URL + '/api/parse', {
+    const response = await fetch(`${API_URL}api/parse`, {
         method: 'POST',
         body: formData,
     });
@@ -44,7 +44,7 @@ export async function parseFiles(files: File[]): Promise<ParseResult> {
 }
 
 export async function analyzeData(payload: AnalyzeInput): Promise<AnalyzeResult> {
-    const response = await fetch(API_URL + '/api/analyze', {
+    const response = await fetch(`${API_URL}api/analyze`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -60,7 +60,7 @@ export async function analyzeData(payload: AnalyzeInput): Promise<AnalyzeResult>
 }
 
 export async function getParseResult(id: number): Promise<ParseResult> {
-    const response = await fetch(API_URL + `/api/parse-results/${id}`, {
+    const response = await fetch(`${API_URL}api/parse-results/${id}`, {
         method: 'GET',
     });
 
@@ -72,7 +72,7 @@ export async function getParseResult(id: number): Promise<ParseResult> {
 }
 
 export async function getParseResults(): Promise<ParseResultDescription[]> {
-    const response = await fetch(API_URL + '/api/parse-results', {
+    const response = await fetch(`${API_URL}api/parse-results`, {
         method: 'GET',
     });
 

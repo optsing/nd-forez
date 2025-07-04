@@ -6,7 +6,8 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "deploy": "gh-pages -d dist"
+    "build:gh": "tsc && vite build --mode gh-pages",
+    "deploy:gh": "pnpm build:gh && gh-pages -d dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

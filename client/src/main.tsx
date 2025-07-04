@@ -2,14 +2,14 @@ import "@fontsource/roboto";
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
-import { createBrowserRouter, RouterProvider } from 'react-router';
+import { createBrowserRouter, createHashRouter, RouteObject, RouterProvider } from 'react-router';
 import App from './App';
 import Layout from './layouts/dashboard';
 import OpenAPIPage from './pages/openapi';
 import RecentPage from "./pages/recent-views";
+const NDForezPage = React.lazy(() => import('./pages/nd-forez'));
 
-
-const router = createBrowserRouter([
+const routes: RouteObject[] = [
   {
     Component: App,
     children: [
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
         children: [
           {
             path: '/',
-            Component: React.lazy(() => import('./pages/nd-forez')),
+            Component: NDForezPage,
           },
           {
             path: '/recent',
@@ -33,7 +33,9 @@ const router = createBrowserRouter([
       },
     ],
   },
-]);
+];
+
+const router = import.meta.env.VITE_ROUTER_MODE === 'hash' ? createHashRouter(routes) : createBrowserRouter(routes);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
