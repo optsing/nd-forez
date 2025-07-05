@@ -20,7 +20,7 @@ Make sure the following are installed on your machine:
 
 ## 📦 Getting Started
 
-### 1. Clone the Repository
+### Clone the Repository
 
 If you haven't already, clone the project using Git:
 
@@ -31,7 +31,7 @@ cd nd-forez
 
 ---
 
-### 2. Run the client
+### Run the client
 
 Navigate to the `client` folder and install dependencies:
 
@@ -50,7 +50,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-### 3. Run the server
+### Run the API server
 
 Navigate to the `server` folder and install Python dependencies:
 
@@ -70,19 +70,19 @@ The API documentation will be available at: [http://localhost:8000/api/docs](htt
 
 ## 🐳 Docker
 
-You can build and run the entire project using Docker:
+### Build and run the entire project using Docker
 
-1. Build the Docker image:
+Build the Docker image:
 
-   ```bash
-   docker build -t nd-forez .
-   ```
+```bash
+docker build -t nd-forez .
+```
 
-2. Run the container:
+Run the container:
 
-   ```bash
-   docker run -p 8000:80 nd-forez
-   ```
+```bash
+docker run -p 8000:80 nd-forez
+```
 
 
 ## 📄 License
