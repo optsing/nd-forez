@@ -67,6 +67,7 @@ uv run fastapi dev ./src/main.py
 
 The API documentation will be available at: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
 
+---
 
 ## 🐳 Docker
 

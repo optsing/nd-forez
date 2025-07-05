@@ -55,7 +55,15 @@ const RecentPage: React.FC = () => {
     }, []);
 
     return (
-        <Box m={3}>
+        <Box sx={{
+            marginX: {
+                xs: 1,
+                sm: 3,
+                md: 6,
+            },
+            marginTop: 3,
+            marginBottom: 12,
+        }}>
             <Typography variant='h5' textAlign='center' gutterBottom>Последние открытые файлы</Typography>
             {isLoading && <Box textAlign='center'>
                 <CircularProgress sx={{ mt: 3 }} />
