@@ -11,11 +11,11 @@
 Make sure the following are installed on your machine:
 
 - [Git](https://git-scm.com/downloads) – for cloning the repository.
-- [Docker](https://docs.docker.com/get-docker/) – for containerized build (optional).
 - [Node.js](https://nodejs.org/) – for running the frontend.
 - [pnpm](https://pnpm.io/) – a fast alternative to npm.
 - [Python 3.13](https://www.python.org/) – for the backend.
 - [uv](https://github.com/astral-sh/uv) – a Python package/dependency manager.
+- [Docker](https://docs.docker.com/get-docker/) – for containerized build (optional).
 
 
 ## 📦 Getting Started
@@ -68,7 +68,7 @@ uv run fastapi dev ./src/main.py
 The API documentation will be available at: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
 
 
-## 🐳 Docker (Optional)
+## 🐳 Docker
 
 You can build and run the entire project using Docker:
 
