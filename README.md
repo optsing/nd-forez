@@ -55,7 +55,7 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 Navigate to the `server` folder and install Python dependencies:
 
 ```bash
-cd ../server
+cd server
 uv sync
 ```
 
