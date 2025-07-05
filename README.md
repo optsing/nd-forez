@@ -1,67 +1,76 @@
 # ND Forez
 
+
 ## 🚀 Live Preview
 
 👉 [View on GitHub Pages](https://optsing.github.io/nd-forez/)
 
-## Requirements
+
+## 🧰 Requirements
 
 Make sure the following are installed on your machine:
 
-- [Node.js](https://nodejs.org/)
-- [pnpm](https://pnpm.io/)
-- [Python 3.13](https://www.python.org/)
-- [uv](https://github.com/astral-sh/uv)
+- [Git](https://git-scm.com/downloads) – for cloning the repository.
+- [Docker](https://docs.docker.com/get-docker/) – for containerized build (optional).
+- [Node.js](https://nodejs.org/) – for running the frontend.
+- [pnpm](https://pnpm.io/) – a fast alternative to npm.
+- [Python 3.13](https://www.python.org/) – for the backend.
+- [uv](https://github.com/astral-sh/uv) – a Python package/dependency manager.
 
-## Getting Started
 
-### Client
+## 📦 Getting Started
 
-1. Navigate to the `client` directory:
+### 1. Clone the Repository
 
-   ```bash
-   cd client
-   ```
+If you haven't already, clone the project using Git:
 
-2. Install Node dependencies using `pnpm`:
+```bash
+git clone https://github.com/optsing/nd-forez.git
+cd nd-forez
+```
 
-   ```bash
-   pnpm install
-   ```
+---
 
-3. Start the development server:
+### 2. Run the client
 
-   ```bash
-   pnpm dev
-   ```
+Navigate to the `client` folder and install dependencies:
 
-   The client should now be running at `http://localhost:5173`.
+```bash
+cd client
+pnpm install
+```
 
-### Server
+Start the Vite development server:
 
-1. Navigate to the `server` directory:
+```bash
+pnpm dev
+```
 
-   ```bash
-   cd server
-   ```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-2. Install Python dependencies using `uv`:
+---
 
-   ```bash
-   uv sync
-   ```
+### 3. Run the server
 
-3. Run the FastAPI development server:
+Navigate to the `server` folder and install Python dependencies:
 
-   ```bash
-   uv run fastapi dev ./src/main.py
-   ```
+```bash
+cd ../server
+uv sync
+```
 
-   The API docs will be available at `http://localhost:8000/api/docs`
+Start the FastAPI server:
 
-## Docker
+```bash
+uv run fastapi dev ./src/main.py
+```
 
-To build and run the entire project using Docker:
+The API documentation will be available at: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
+
+
+## 🐳 Docker (Optional)
+
+You can build and run the entire project using Docker:
 
 1. Build the Docker image:
 
@@ -74,3 +83,8 @@ To build and run the entire project using Docker:
    ```bash
    docker run -p 8000:80 nd-forez
    ```
+
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
