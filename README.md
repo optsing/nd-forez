@@ -1,5 +1,11 @@
 # ND Forez
 
+ND Forez is a data analysis tool for non-denaturing phoresis of genomic libraries. It evaluates library quality, fragment length distribution, and concentration. The system identifies DNA size standards and library peaks, estimates fragment sizes and concentrations, builds a calibration curve, visualizes results as electropherograms and chromatograms, and generates PDF reports.
+
+Tech stack:
+
+    Client: TypeScript, React, Material UI, Chart.js
+    Server: Python, FastAPI, NumPy, SciPy, PyWavelets
 
 ## 🚀 Live Preview
 
