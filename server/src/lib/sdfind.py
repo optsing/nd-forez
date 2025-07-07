@@ -8,46 +8,23 @@ from lib.matlab.wden import wden
 from lib.matlab.msbackadj import msbackadj
 
 
-def load_matlab_data(filename: str) -> list[float]:
-    with open(filename, "r") as f:
-        return [float(line.strip()) for line in f if line.strip()]
-
-
 @dataclass
 class SDFindResult:
-    corrected_data: NDArray[Any]
+    corrected_data: NDArray
     selected_peaks: NDArray[np.int64]
-    led_area: NDArray[Any]
-    led_conc: NDArray[Any]
-    sd_molarity: NDArray[np.float64]
-    liz_fit: NDArray[Any]
-    locs_fit: NDArray[Any]
+    led_area: NDArray
+    led_conc: NDArray
+    molarity: NDArray[np.float64]
+    liz_fit: NDArray
+    locs_fit: NDArray
 
 
-def SDFind(data: NDArray[Any], sizes: NDArray[Any], release_times: NDArray[Any], concentrations: NDArray[Any]) -> SDFindResult:
+def SDFind(data: NDArray, sizes: NDArray, release_times: NDArray, concentrations: NDArray) -> SDFindResult:
     x = np.arange(len(data))
     corrected_data = msbackadj(x, data, window_size=140, step_size=40, quantile_value=0.1)  # коррекция бейзлайна
     filtered_data = wden(corrected_data, 'sqtwolog', 's', 'sln', 1, 'sym2')  # фильтр данных
 
-    # raw_data_ml = load_matlab_data('raw_data.txt')
-    # delta = raw_data - raw_data_ml
-
-    # # Mean Squared Error (MSE)
-    # mse = np.mean((delta) ** 2)
-    # # Mean Absolute Error (MAE)
-    # mae = np.mean(np.abs(delta))
-    # # Maximum absolute difference
-    # max_diff = np.max(np.abs(delta))
-    # # Pearson correlation coefficient
-    # corr_coef = np.corrcoef(delta)
-
-    # print(f"MSE: {mse}")
-    # print(f"MAE: {mae}")
-    # print(f"Max absolute difference: {max_diff}")
-    # print(f"Correlation coefficient: {corr_coef}")
-
     flipped_filtered_data = np.flip(filtered_data)
-
     flipped_selected_peaks = find_flipped_selected_peaks(flipped_filtered_data, sizes, release_times)
 
     flipped_areas = []
@@ -99,7 +76,7 @@ def SDFind(data: NDArray[Any], sizes: NDArray[Any], release_times: NDArray[Any],
         selected_peaks=selected_peaks,
         led_area=led_area,
         led_conc=led_conc,
-        sd_molarity=sd_molarity,
+        molarity=sd_molarity,
         liz_fit=liz_fit,
         locs_fit=locs_fit,
     )
