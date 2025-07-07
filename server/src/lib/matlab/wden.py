@@ -35,7 +35,7 @@ def wden(
     sigma = np.median(np.abs(cD)) / 0.6745
 
     # Compute universal threshold (sqtwolog rule)
-    threshold = sigma * np.sqrt(2 * np.log(N))
+    threshold = sigma * np.sqrt(2 * np.log(2 * len(cD)))
 
     # Apply thresholding to the detail coefficients
     cD_thresh = pywt.threshold(cD, threshold, mode='hard' if sorh == 'h' else 'soft')
