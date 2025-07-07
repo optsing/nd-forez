@@ -36,29 +36,21 @@ def msbackadj(
     x_start = x[0]
     x_end = x[-1]
 
-    while x_start < x_end:
+    while x_start <= x_end:
         # Window from x_start to x_start + window_size
         x_win_lo = x_start
         x_win_hi = x_start + window_size
 
         # Mask for points within the current window
-        mask = (x >= x_win_lo) & (x < x_win_hi)
+        mask = (x >= x_win_lo) & (x <= x_win_hi)
         y_window = y[mask]
 
         if y_window.size > 0:
             # Use center of window and quantile of y as baseline point
             baseline_x.append(x_start + window_size / 2)
-            baseline_y.append(np.quantile(y_window, quantile_value))
+            baseline_y.append(np.quantile(y_window, quantile_value, method='hazen'))
 
         x_start += step_size
-
-    # Pad edges to avoid extrapolation errors
-    if baseline_x[0] > x[0]:
-        baseline_x.insert(0, x[0])
-        baseline_y.insert(0, baseline_y[0])
-    if baseline_x[-1] < x[-1]:
-        baseline_x.append(x[-1])
-        baseline_y.append(baseline_y[-1])
 
     # Interpolate baseline using PCHIP (Piecewise Cubic Hermite Interpolating Polynomial)
     f_interp = PchipInterpolator(baseline_x, baseline_y, extrapolate=True)
