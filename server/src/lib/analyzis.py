@@ -1,3 +1,5 @@
+import numpy as np
+
 from lib.sdfind import SDFind
 from lib.glfind import GLFind
 
@@ -5,7 +7,12 @@ from models.models import SizeStandard, GenLib, AnalyzeResult, AnalyzeResultData
 
 
 def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResult:
-    [peak, led_area, led_conc, ZrRef, SD_molarity, liz_fit, locs_fit] = SDFind(size_standard.data, size_standard.sizes, size_standard.release_times, size_standard.concentrations)
+    sdfind_result = SDFind(
+        np.array(size_standard.data),
+        np.array(size_standard.sizes),
+        np.array(size_standard.release_times),
+        np.array(size_standard.concentrations)
+    )
 
     results: list[AnalyzeResultData] = []
     for gl_d in gen_libs:
@@ -15,7 +22,7 @@ def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResul
             hpx, unr, stp, main_corr, gl_areas, peaks_corr, library_peaks, area_corr, molarity,
             max_lib_peak, max_lib_value, total_lib_area, total_lib_conc, total_lib_molarity,
             x_fill, y_fill, x_lib_fill, y_lib_fill
-        ) = GLFind(gl_d.data, peak, size_standard.sizes, size_standard.concentrations)
+        ) = GLFind(gl_d.data, sdfind_result.selected_peaks, size_standard.sizes, size_standard.concentrations)
         results.append(AnalyzeResultData(
             title=gl_d.title,
             t_main=t_main.tolist(),
@@ -51,13 +58,13 @@ def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResul
         ))
     return AnalyzeResult(
         title=size_standard.title,
-        peak=peak.tolist(),
-        led_area=led_area.tolist(),
-        led_conc=led_conc.tolist(),
-        ZrRef=ZrRef.tolist(),
-        SD_molarity=SD_molarity.tolist(),
-        liz_fit=liz_fit.tolist(),
-        locs_fit=locs_fit.tolist(),
+        peak=sdfind_result.selected_peaks.tolist(),
+        led_area=sdfind_result.led_area.tolist(),
+        led_conc=sdfind_result.led_conc.tolist(),
+        ZrRef=sdfind_result.corrected_data.tolist(),
+        SD_molarity=sdfind_result.sd_molarity.tolist(),
+        liz_fit=sdfind_result.liz_fit.tolist(),
+        locs_fit=sdfind_result.locs_fit.tolist(),
         sizes=size_standard.sizes,
         concentrations=size_standard.concentrations,
         genlib_data=results,
