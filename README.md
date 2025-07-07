@@ -4,8 +4,8 @@ ND Forez is a data analysis tool for non-denaturing phoresis of genomic librarie
 
 Tech stack:
 
-    Client: TypeScript, React, Material UI, Chart.js
-    Server: Python, FastAPI, NumPy, SciPy, PyWavelets
+    Frontend: TypeScript, React, Vite, Material UI, Chart.js
+    Backend: Python, FastAPI, SQLModel, NumPy, SciPy, PyWavelets
 
 ## 🚀 Live Preview
 
