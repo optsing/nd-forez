@@ -42,7 +42,7 @@ class GLFindResult:
 
 def GLFind(data: NDArray, peak: NDArray[np.int64], sizes: NDArray, concentrations: NDArray) -> GLFindResult:
     # 1. Выбор первых 50 значений как шума
-    noise = data[0:50]
+    noise = data[:50]
     # Вычитание шума из данных
     denoised_data = data - np.mean(noise)
 
@@ -73,7 +73,7 @@ def GLFind(data: NDArray, peak: NDArray[np.int64], sizes: NDArray, concentration
     if len(selected_peak_locations) == 0:
         raise ValueError('Пики геномной библиотеки не были найдены')
 
-    lonely_pks, selected_peak_locations = dl_peaks(selected_peak_locations, corrected_data)
+    lonely_pks, selected_peak_locations = find_dl_peaks(selected_peak_locations, corrected_data)
 
     # 3. Нахождение минимумов электрофореграммы
     flip = -corrected_data
@@ -97,14 +97,12 @@ def GLFind(data: NDArray, peak: NDArray[np.int64], sizes: NDArray, concentration
     hidden_lib_peak_locations = np.array([], dtype=np.int64)
 
     unrecognized_peaks = np.array([], dtype=np.int64)
-    pre_unrecognized_peaks = np.array([], dtype=np.int64)
 
     hidden_lib_areas = np.array([])
     rest_peaks_areas = np.array([])
 
     final_lib_local_minimums = np.array([])
 
-    st_length = np.array([])
     st_areas = np.array([])
 
     st_peaks = np.array([peak[0], peak[-1]])
@@ -113,58 +111,15 @@ def GLFind(data: NDArray, peak: NDArray[np.int64], sizes: NDArray, concentration
     sdc = np.polyfit(peak, sizes, 5)
     sdc2 = np.polyfit(sizes, peak, 5)
 
-    for i in range(len(lonely_pks) - 1):
-        # Вычисление pace
-        pace = st_peaks[1] - st_peaks[0]
-        # Инициализация массивов
-        st_length = [lonely_pks[0]]  # Инициализируем массив st_length первым значением lonely_pks
-        # Базовое значение
-        base_value = lonely_pks[0]
+    # Вычисление pace
+    pace = st_peaks[-1] - st_peaks[0]
 
-        # Поиск пиков
-        for i in range(1, len(lonely_pks)):
-            # Вычитание базового значения
-            distance = lonely_pks[i] - base_value
-            # Проверка расстоянияs
-            if np.abs(distance - pace) <= 0.2 * pace:  # Используем 20% допуск
-                st_length.append(lonely_pks[i])
-            else:
-                pre_unrecognized_peaks = np.append(pre_unrecognized_peaks, lonely_pks[i])
-
-        if len(lonely_pks) > 1 and len(st_length) < 2:
-            st_length = [lonely_pks[0], lonely_pks[-1]]
-
-        if len(st_length) > 2:
-            # Создаем массив для хранения площадей
-            areas = []
-
-            # Перебираем все значения, начиная со второго
-            for i in range(1, len(st_length)):
-                # Определяем границы (±7)
-                left_idx = st_length[i] - 7
-                right_idx = st_length[i] + 7
-
-                # Интегрируем площадь между границами
-                area = trapezoid(corrected_data[left_idx:right_idx])
-
-                areas.append(area)
-
-            # Находим индекс наибольшей площади
-            max_idx = np.argmax(areas)
-
-            # Выбираем соответствующее значение из st_length
-            best_value = st_length[max_idx + 1]  # +1 из-за смещения
-
-            # Обновляем st_length
-            st_length = [st_length[0], best_value]
+    st_length, pre_unrecognized_peaks = find_st_length(lonely_pks, pace, corrected_data)
 
     if len(st_length) != 2:
         # TODO Добавить выбор реперных пиков
         # Мы обрабатывает несколько генных библиотек в одном анализе и для каждой может потребоваться свой выбор
         raise ValueError('Реперные пики не найдены.')
-
-    pre_unrecognized_peaks = np.unique(pre_unrecognized_peaks)
-    pre_unrecognized_peaks = pre_unrecognized_peaks[~np.isin(pre_unrecognized_peaks, st_length)]  # если найденный неопознанный пик отнесён к реперному, то он удаляется из массива
 
     min_st_length = []
 
@@ -187,6 +142,7 @@ def GLFind(data: NDArray, peak: NDArray[np.int64], sizes: NDArray, concentration
 
     # Объединяем массивы, удаляем дубликаты и сортируем массив
     complete_peaks_locations = np.union1d(complete_peaks_locations, min_st_length)
+
     # На случай, если репер и неопознанный пик находятся слишком близко (расстояние < 10) - иначе впоследствии программа не понимает,
     # какой минимум между ними должен быть (их минимумы накладываются)
     for i in range(len(st_length)):
@@ -350,7 +306,7 @@ def GLFind(data: NDArray, peak: NDArray[np.int64], sizes: NDArray, concentration
 
             if len(peaks_between) > 1:
                 new_peak = np.mean(peaks_between[:2])  # Среднее значение rest_peaks между двумя соседствующими пиками (минимум между двумя текущими значениями)
-                rest_peaks_locations = np.union1d(rest_peaks_locations, new_peak) # Добавляем новый минимум: если между текущими минимумами нашли несколько максимумов, добавляем новые минимумы, чтобы разделить эти максимумы
+                rest_peaks_locations = np.union1d(rest_peaks_locations, new_peak)  # Добавляем новый минимум: если между текущими минимумами нашли несколько максимумов, добавляем новые минимумы, чтобы разделить эти максимумы
                 i -= 1
             elif len(peaks_between) == 1:
                 # Определяем границы текущей области
@@ -537,7 +493,7 @@ def GLFind(data: NDArray, peak: NDArray[np.int64], sizes: NDArray, concentration
     )
 
 
-def dl_peaks(selected_peak_locations: NDArray, corrected_data: NDArray) -> tuple[NDArray, NDArray]:
+def find_dl_peaks(selected_peak_locations: NDArray, corrected_data: NDArray) -> tuple[NDArray, NDArray]:
     one_pks = []
     # Мы не мутируем аргумент, а возвращаем новый массив
     new_selected_peak_locations = np.copy(selected_peak_locations)
@@ -547,7 +503,7 @@ def dl_peaks(selected_peak_locations: NDArray, corrected_data: NDArray) -> tuple
         right_idx = peak_idx + 4
 
         # Ищем индекс максимума между текущими границами и его границы
-        final_peak_idx = left_idx + np.argmax(corrected_data[left_idx:right_idx])
+        final_peak_idx = left_idx + np.argmax(corrected_data[left_idx:right_idx + 1])
         final_left_idx = final_peak_idx - 4
         final_right_idx = final_peak_idx + 4
 
@@ -565,7 +521,63 @@ def dl_peaks(selected_peak_locations: NDArray, corrected_data: NDArray) -> tuple
     return np.array(one_pks), new_selected_peak_locations
 
 
-def hid_fun(denoised_data, start_index, end_index, hidden_lib_areas, max_lib_value) -> tuple[Any, Any, Any]:
+def find_st_length(lonely_pks: NDArray, pace: Any, corrected_data: NDArray) -> tuple[NDArray, NDArray]:
+    """
+    Поиск реперных пиков
+    """
+
+    if len(lonely_pks) < 2:
+        return np.empty(0), np.empty(0)
+
+    # Инициализация массивов
+    peak_condidates = []
+    peak_unrecognized = []
+
+    start_peak = lonely_pks[0]
+    end_peak: Any
+
+    # Поиск второго пика
+    for i in range(1, len(lonely_pks)):
+        # Вычитание базового значения
+        distance = lonely_pks[i] - start_peak
+        # Проверка расстоянияs
+        if np.abs(distance - pace) <= 0.2 * pace:  # Используем 20% допуск
+            peak_condidates.append(lonely_pks[i])
+        else:
+            peak_unrecognized.append(lonely_pks[i])
+
+    if len(peak_condidates) == 0:
+        end_peak = lonely_pks[-1]
+    elif len(peak_condidates) == 1:
+        end_peak = peak_condidates[0]
+    else:
+        # Создаем массив для хранения площадей
+        areas = []
+
+        # Перебираем все значения, начиная со второго
+        for idx in peak_condidates:
+            # Определяем границы (±7)
+            left_idx = idx - 7
+            right_idx = idx + 7
+
+            # Интегрируем площадь между границами
+            area = trapezoid(corrected_data[left_idx:right_idx + 1])
+            areas.append(area)
+
+        # Находим индекс наибольшей площади
+        max_idx = np.argmax(areas)
+
+        # Выбираем как второй реперный пик
+        end_peak = peak_condidates[max_idx]
+
+    # Не имеет смысла, в pre_unrecognized_peaks не попадают реперные пики, значения уникальные и отсортированные (как в lonely_pks)
+    # peak_unrecognized = np.unique(peak_unrecognized)
+    # peak_unrecognized = peak_unrecognized[~np.isin(peak_unrecognized, peak_condidates)]  # если найденный неопознанный пик отнесён к реперному, то он удаляется из массива
+
+    return np.array([start_peak, end_peak]), np.array(peak_unrecognized)
+
+
+def hid_fun(denoised_data: NDArray, start_index, end_index, hidden_lib_areas, max_lib_value) -> tuple[NDArray, NDArray, NDArray]:
 
     median_before_max = np.median(np.arange(start_index, max_lib_value + 1))  # Находим медианное значение между start_index и maxLibValue (левая середина пика ГБ)
     median_after_max = np.median(np.arange(max_lib_value, end_index + 1))  # Находим медианное значение между maxLibValue и end_index (правая середина пика ГБ)
