@@ -88,7 +88,7 @@ def find_flipped_selected_peaks(flipped_filtered_data: NDArray[Any], sizes: NDAr
     new_sizes = np.polyval(poly_coef, np.flip(sizes))
     d_sizes = np.abs(np.diff(new_sizes))
 
-    threshold = np.quantile(flipped_filtered_data, 0.995)  # для начала возьмем порог на уровне 99.5%, будем его снижать, если надо
+    threshold = np.quantile(flipped_filtered_data, 0.995, method='hazen')  # для начала возьмем порог на уровне 99.5%, будем его снижать, если надо
 
     # *** НАЙДЕМ В СПЕКТРЕ ПИКИ, СООТВЕТВУЮЩИЕ ПИКАМ СТАНДАРТА ***
     for _ in range(30):   # главный цикл (30 попыток)

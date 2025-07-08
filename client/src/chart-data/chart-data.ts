@@ -139,10 +139,10 @@ export function prepareStandardAnalyzedTable(analyzeResult: AnalyzeResult): Anal
     const rows: AnalyzedTableRow[] = [];
     for (let i = 0; i < analyzeResult.sizes.length; i++) {
         rows.push({
-            size: analyzeResult.sizes[i].toString(),
-            concentration: analyzeResult.concentrations[i].toString(),
+            size: round(analyzeResult.sizes[i]).toString(),
+            concentration: round(analyzeResult.concentrations[i]).toString(),
             molarity: round(analyzeResult.SD_molarity[i]).toString(),
-            peak: analyzeResult.peak[i].toString(),
+            peak: round(analyzeResult.peak[i]).toString(),
             area: round(analyzeResult.led_area[i] * 1e-7).toString(),
         });
     }
