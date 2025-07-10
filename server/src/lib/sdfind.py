@@ -30,7 +30,8 @@ def sdfind(raw_signal: NDArray, standard_sizes: NDArray, release_times: NDArray,
     if len(matching_peaks_flipped) != len(standard_sizes):
         raise ValueError('Не удалось найти подходящее количество пиков. Проверьте калибровку стандартов длины.')
 
-    peak_areas_flipped = compute_peak_areas_flipped(baseline_corrected, denoised_flipped, matching_peaks_flipped)
+    baseline_corrected_flipped = np.flip(baseline_corrected)
+    peak_areas_flipped = compute_peak_areas_flipped(baseline_corrected_flipped, denoised_flipped, matching_peaks_flipped)
 
     if len(peak_areas_flipped) != len(standard_sizes):
         raise ValueError("Количество рассчитанных площадей не совпадает с количеством калибровочных стандартов.")
@@ -57,12 +58,14 @@ def sdfind(raw_signal: NDArray, standard_sizes: NDArray, release_times: NDArray,
 
 
 def find_matching_peaks_flipped(denoised_flipped: NDArray[Any], standard_sizes: NDArray[Any], release_times: NDArray[Any]) -> NDArray[np.int64]:
+    """Находит пики, соответствующие калибровочным стандартам."""
+
     # Понадобится для отсеивания найденных пиков в соотвествии с выбранным законом
     poly_coef = np.polyfit(standard_sizes, release_times, 4)  # полином 4 степени
     new_sizes = np.polyval(poly_coef, np.flip(standard_sizes))
     size_deltas = np.abs(np.diff(new_sizes))
 
-    overmuch = 2.4  # порог, значение взято из опыта
+    overmuch = len(standard_sizes) * 2.4  # порог количества, значение взято из опыта
     threshold = np.quantile(denoised_flipped, 0.995, method='hazen')  # для начала возьмем порог на уровне 99.5%, будем его снижать, если надо
 
     # *** НАЙДЕМ В СПЕКТРЕ ПИКИ, СООТВЕТВУЮЩИЕ ПИКАМ СТАНДАРТА ***
@@ -80,7 +83,7 @@ def find_matching_peaks_flipped(denoised_flipped: NDArray[Any], standard_sizes: 
                 break
             threshold *= 0.9
 
-        if len(peaks) >= overmuch * len(standard_sizes):
+        if len(peaks) >= overmuch:
             break
 
         #  ОТСЕИВАЕМ ЛИШНИЕ
@@ -117,8 +120,8 @@ def find_matching_peaks_flipped(denoised_flipped: NDArray[Any], standard_sizes: 
     return np.empty(0, dtype=np.int64)
 
 
-def compute_peak_areas_flipped(baseline_corrected: NDArray, denoised_flipped: NDArray, matching_peaks_flipped: NDArray):
-    baseline_corrected_flipped = np.flip(baseline_corrected)
+def compute_peak_areas_flipped(baseline_corrected_flipped: NDArray, denoised_flipped: NDArray, matching_peaks_flipped: NDArray):
+    """Вычисляет площади под сигналом между границами пиков."""
 
     #  Нахождение минимумов
     smoothed = savgol_filter(denoised_flipped, 3, 1)

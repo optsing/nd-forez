@@ -1,7 +1,7 @@
 import numpy as np
 
 from lib.sdfind import sdfind
-from lib.glfind import GLFind
+from lib.glfind import glfind
 
 from models.models import SizeStandard, GenLib, AnalyzeResult, AnalyzeResultData
 
@@ -18,7 +18,7 @@ def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResul
 
     results: list[AnalyzeResultData] = []
     for gl_d in gen_libs:
-        glfind_result = GLFind(np.array(gl_d.data), sdfind_result.peaks, standard_sizes, standard_conc)
+        glfind_result = glfind(np.array(gl_d.data), sdfind_result.peaks, standard_sizes, standard_conc)
         results.append(AnalyzeResultData(
             title=gl_d.title,
             t_main=glfind_result.t_main.tolist(),

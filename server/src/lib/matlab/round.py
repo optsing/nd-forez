@@ -4,7 +4,7 @@ from numpy.typing import NDArray
 
 
 @overload
-def matlab_round(x: float | int) -> int:
+def matlab_round(x: np.floating | float | int) -> int:
     ...
 
 
@@ -13,7 +13,7 @@ def matlab_round(x: NDArray | list[Any]) -> NDArray:
     ...
 
 
-def matlab_round(x: NDArray | list[Any] | float | int) -> NDArray | int:
+def matlab_round(x: NDArray | list[Any] | np.floating | float | int) -> NDArray | int:
     """
     Rounds input like MATLAB: half values are rounded away from zero.
 
