@@ -39,7 +39,7 @@ def sdfind(
         raise ValueError("Количество рассчитанных площадей не совпадает с количеством калибровочных стандартов.")
 
     concentrations = peak_areas / (standard_sizes ** 2 / 100)
-    molarity = ((np.array(standard_conc) * 1e-3) / (649 * standard_sizes)) * 1e9
+    molarity = ((standard_conc * 1e-3) / (649 * standard_sizes)) * 1e9
 
     # Подгонка полинома 4-й степени
     poly_coef = np.polyfit(standard_sizes, matching_peaks, 4)

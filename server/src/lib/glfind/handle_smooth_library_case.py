@@ -20,7 +20,7 @@ def handle_smooth_library_case(
     np.integer,
 ]:
     """Обработка случая, когда геномная библиотека гладкая или содержит один невыраженный пик"""
-    rest_peaks_areas = np.empty(0)
+    rest_peaks_areas = np.empty(0, dtype=np.float64)
     rest_peaks = np.copy(selected_peak_locations)  # Собираем все найденные пики
     # Удаляем значения из rest_peaks, которые попадают в диапазон реперных пиков
     rest_peaks = rest_peaks[~((rest_peaks >= (reference_peaks[0] - 10)) & (rest_peaks <= (reference_peaks[0] + 10)) | (rest_peaks >= (reference_peaks[1] - 10)) & (rest_peaks <= (reference_peaks[1] + 10)))]
@@ -63,7 +63,7 @@ def handle_smooth_library_case(
     max_lib_value = rest_peaks[max_index]
 
     # Записываем соответствующий пик в LibPeakLocations
-    lib_peak_locations = np.array([max_lib_value])
+    lib_peak_locations = np.array([max_lib_value], dtype=np.int64)
 
     # Находим минимумы, которые принадлежат найденному максимому
     start_index = max(rest_peaks_locations[rest_peaks_locations < lib_peak_locations])
@@ -78,7 +78,7 @@ def handle_smooth_library_case(
     # Удаляем главный пик и его площадь из "неопознанных"
     unrecognized_peaks = np.delete(unrecognized_peaks, max_index)
 
-    final_lib_local_minimums = np.array([hidden_final_lib_local_minimums[0], hidden_final_lib_local_minimums[-1]])
+    final_lib_local_minimums = np.array([hidden_final_lib_local_minimums[0], hidden_final_lib_local_minimums[-1]], dtype=np.int64)
 
     return (
         lib_peak_locations,

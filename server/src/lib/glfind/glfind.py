@@ -8,6 +8,7 @@ from lib.glfind.find_reference_peaks import find_reference_peaks
 from lib.glfind.find_selected_peaks import find_selected_peaks
 from lib.glfind.find_signal_minima import find_signal_minima
 from lib.glfind.handle_smooth_library_case import handle_smooth_library_case
+from lib.glfind.refine_lib_peak_locations import refine_lib_peak_locations
 from lib.glfind.refine_minima_near_reference_peaks import refine_minima_near_reference_peaks
 from lib.glfind.refine_selected_peaks import refine_selected_peaks
 from lib.matlab.msbackadj import msbackadj
@@ -59,16 +60,16 @@ def glfind(
     x = np.arange(len(raw_signal))
     baseline_corrected = msbackadj(x, denoised_signal, window_size=140, step_size=300, quantile_value=0.05)  # коррекция бейзлайна
 
-    selected_peak_locations = find_selected_peaks(baseline_corrected)
+    selected_peak_candidates = find_selected_peaks(baseline_corrected)
 
-    if len(selected_peak_locations) == 0:
+    if len(selected_peak_candidates) == 0:
         raise ValueError('Пики геномной библиотеки не были найдены')
 
-    selected_peak_locations, lonely_pks = refine_selected_peaks(baseline_corrected, selected_peak_locations)
+    selected_peak_locations, lonely_peaks = refine_selected_peaks(baseline_corrected, selected_peak_candidates)
 
     # Вычисление pace
     pace: np.int64 = standard_peaks[-1] - standard_peaks[0]
-    reference_peaks, pre_unrecognized_peaks = find_reference_peaks(baseline_corrected, lonely_pks, pace)
+    reference_peaks, pre_unrecognized_peaks = find_reference_peaks(baseline_corrected, lonely_peaks, pace)
 
     if len(reference_peaks) != 2:
         # TODO Добавить выбор реперных пиков
@@ -88,12 +89,11 @@ def glfind(
 
     # 5. Обработка данных с учётом калибровки
     # В этом блоке теперь находим и разбиваем все локальные пики по классам: реперные пики, пики геномной библиотеки и неопознанные пики
-    is_smooth = False
     (
-        lib_peak_locations,
+        lib_peak_candidates,
         hidden_lib_peak_locations,
         hidden_lib_areas,
-        final_lib_local_minimums,
+        lib_local_minima_candidates,
         unrecognized_peaks,
         max_lib_value,
 
@@ -111,9 +111,11 @@ def glfind(
         sdc,
         sdc2,
     )
+
+    is_smooth = len(hidden_lib_peak_locations) == 0
+
     # Если ГБ гладкая/фаикс/слишком низкая
-    if len(hidden_lib_peak_locations) == 0:
-        is_smooth = True
+    if is_smooth:
         (
             lib_peak_locations,
             hidden_lib_peak_locations,
@@ -129,10 +131,16 @@ def glfind(
             all_local_minimums,
         )
         hidden_lib_areas = np.append(hidden_lib_areas, new_hidden_lib_areas)
+    else:
+        lib_peak_locations, final_lib_local_minimums = refine_lib_peak_locations(
+            lib_peak_candidates,
+            hidden_lib_peak_locations,
+            lib_local_minima_candidates,
+        )
 
     # Этот блок приводит электрофореграмму геномной библиотеки и стандарта
     # длин в одну шкалу (выравнивает по ширине и высоте)
-    st_peaks = np.array([standard_peaks[0], standard_peaks[-1]])
+    st_peaks = np.array([standard_peaks[0], standard_peaks[-1]], dtype=np.int64)
     px = np.polyfit(reference_peaks, st_peaks, 1)  # выравнивание по ширине
     t = np.arange(len(baseline_corrected))
     t_main = np.polyval(px, t)
@@ -141,8 +149,8 @@ def glfind(
     main_corr = np.polyval(sdc, t_main)
     st_peaks_corr = np.polyval(sdc, st_peaks)
 
-    st_areas = np.array([st_areas[0], st_areas[-1]])
-    conc = np.array([standard_conc[0], standard_conc[-1]])
+    st_areas = np.array([st_areas[0], st_areas[-1]], dtype=np.float64)
+    conc = np.array([standard_conc[0], standard_conc[-1]], dtype=np.float64)
 
     led_one_area = st_areas / (st_peaks_corr / 100)  # считает корректно, проверено (в Matlab)
     a = np.polyfit(led_one_area, conc, 1)
@@ -159,16 +167,11 @@ def glfind(
     #  Если ГБ гладкая/фаикс/слишком низкая (потому что там всего один пик - нет локальных)
     if is_smooth:
         (
-            lib_length,
-            lib_peaks_corr,
             lib_areas,
             lib_one_area,
             lib_one_area_conc,
             lib_molarity,
         ) = compute_smooth_library_concentrations(
-            lib_peak_locations,
-            px,
-            sdc,
             hidden_lib_areas,
             hid_one_area,
             hid_one_area_conc,
@@ -177,8 +180,6 @@ def glfind(
     # Если ГБ содержит локальные пики и она была идентифицирована как ГБ (был найдет максимум и скрытые пики):
     else:
         (
-            lib_length,
-            lib_peaks_corr,
             lib_areas,
             lib_one_area,
             lib_one_area_conc,
@@ -186,14 +187,15 @@ def glfind(
         ) = compute_fragmented_library_concentrations(
             lib_peak_locations,
             hidden_lib_peak_locations,
-            final_lib_local_minimums,
-            px,
-            sdc,
             hidden_lib_areas,
             hid_one_area,
             hid_one_area_conc,
             hid_molarity,
         )
+
+    # считаем концентрации ГБ
+    lib_length = np.polyval(px, lib_peak_locations)
+    lib_peaks_corr = np.polyval(sdc, lib_length)
 
     # one_area = np.concatenate(([led_one_area[0]], lib_one_area, [led_one_area[-1]]))  # площадь на один фрагмент, не нужен в коде, но может понадобиться для проверки!!!
     all_areas_conc = np.concatenate(([standard_conc[0]], lib_one_area_conc, [standard_conc[-1]]))  # концентрация
@@ -218,14 +220,14 @@ def glfind(
         x_fill_1 = t_main[x_fill_1.astype(int)]
         x_fill = np.linspace(x_fill_1[0], x_fill_1[-1], 100)
     else:
-        x_fill = np.empty(0)
+        x_fill = np.empty(0, dtype=np.float64)
 
     if len(x_lib_fill_1):
         x_lib_fill_1 = np.array([x_lib_fill_1[0], x_lib_fill_1[-1]])
         x_lib_fill_1 = t_main[x_lib_fill_1.astype(int)]
         x_lib_fill = np.linspace(x_lib_fill_1[0], x_lib_fill_1[-1], 100)
     else:
-        x_lib_fill = np.empty(0)
+        x_lib_fill = np.empty(0, dtype=np.float64)
 
     hpx = matlab_round(lib_peaks_corr)
     unr = matlab_round(unrecognized_peaks_corr)

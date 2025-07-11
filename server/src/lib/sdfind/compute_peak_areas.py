@@ -39,4 +39,4 @@ def compute_peak_areas(
                 area: float = quad(interp_func, x_range[0], x_range[-1])[0]
                 peak_areas.append(area)
 
-    return np.array(peak_areas)
+    return np.array(peak_areas, dtype=np.float64)

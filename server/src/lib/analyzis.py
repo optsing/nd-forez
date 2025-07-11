@@ -7,18 +7,18 @@ from models.models import SizeStandard, GenLib, AnalyzeResult, AnalyzeResultData
 
 
 def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResult:
-    standard_sizes = np.array(size_standard.sizes)
-    standard_conc = np.array(size_standard.concentrations)
+    standard_sizes = np.array(size_standard.sizes, dtype=np.float64)
+    standard_conc = np.array(size_standard.concentrations, dtype=np.float64)
     sdfind_result = sdfind(
-        np.array(size_standard.data),
+        np.array(size_standard.data, dtype=np.float64),
         standard_sizes,
-        np.array(size_standard.release_times),
+        np.array(size_standard.release_times, dtype=np.float64),
         standard_conc
     )
 
     results: list[AnalyzeResultData] = []
     for gl_d in gen_libs:
-        glfind_result = glfind(np.array(gl_d.data), sdfind_result.peaks, standard_sizes, standard_conc)
+        glfind_result = glfind(np.array(gl_d.data, dtype=np.float64), sdfind_result.peaks, standard_sizes, standard_conc)
         results.append(AnalyzeResultData(
             title=gl_d.title,
             t_main=glfind_result.t_main.tolist(),
