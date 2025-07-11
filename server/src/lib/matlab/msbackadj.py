@@ -27,7 +27,7 @@ def msbackadj(
     y = np.asarray(y)
     N = len(x)
     if N == 0:
-        return np.array([])  # Return empty array for empty input
+        return np.empty(0)  # Return empty array for empty input
 
     baseline_x = []  # x-positions of baseline anchor points
     baseline_y = []  # corresponding y-values (quantiles)
