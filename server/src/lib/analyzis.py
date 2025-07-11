@@ -1,7 +1,7 @@
 import numpy as np
 
-from lib.sdfind import sdfind
-from lib.glfind import glfind
+from lib.sdfind.sdfind import sdfind
+from lib.glfind.glfind import glfind
 
 from models.models import SizeStandard, GenLib, AnalyzeResult, AnalyzeResultData
 

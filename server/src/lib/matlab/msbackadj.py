@@ -1,14 +1,15 @@
 import numpy as np
+from numpy.typing import NDArray
 from scipy.interpolate import PchipInterpolator
 
 
 def msbackadj(
-    x,
-    y,
+    x: NDArray,
+    y: NDArray,
     window_size: float = 140,
     step_size: float = 40,
     quantile_value: float = 0.1
-):
+) -> NDArray:
     """
     Approximate MATLAB's `msbackadj` function: subtracts a slowly varying baseline
     from a signal using a sliding window and quantile-based estimation.

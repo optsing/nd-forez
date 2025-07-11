@@ -1,16 +1,17 @@
 from typing import Literal
+from numpy.typing import NDArray
 import pywt
 import numpy as np
 
 
 def wden(
-    signal,
+    signal: NDArray,
     tptr: Literal['sqtwolog'] = 'sqtwolog',
     sorh: Literal['s', 'h'] = 's',
     scal: Literal['sln'] = 'sln',
     level: int = 1,
     wname: str = 'sym2'
-):
+) -> NDArray[np.floating]:
     """
     Partial reproduction of MATLAB's `wden` function for denoising a signal using wavelet transform.
     This version implements only a subset of the original functionality.

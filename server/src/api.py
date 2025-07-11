@@ -61,10 +61,10 @@ async def do_parse(files: list[UploadFile] = File(...), session: Session = Depen
 
 @apiRoute.post('/analyze')
 def do_analyze(data: AnalyzeInput) -> AnalyzeResult:
-    try:
-        return analyze(data.size_standard, data.gen_libs)
-    except Exception as ex:
-        raise HTTPException(status_code=422, detail=str(ex))
+    # try:
+    return analyze(data.size_standard, data.gen_libs)
+    # except Exception as ex:
+    #     raise HTTPException(status_code=422, detail=str(ex))
 
 
 @apiRoute.get('/parse-results')

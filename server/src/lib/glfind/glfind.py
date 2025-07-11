@@ -1,0 +1,271 @@
+from dataclasses import dataclass
+import numpy as np
+from numpy.typing import NDArray
+from lib.glfind.classify_and_extract_library_peaks import classify_and_extract_library_peaks
+from lib.glfind.compute_fragmented_library_concentrations import compute_fragmented_library_concentrations
+from lib.glfind.compute_smooth_library_concentrations import compute_smooth_library_concentrations
+from lib.glfind.find_reference_peaks import find_reference_peaks
+from lib.glfind.find_selected_peaks import find_selected_peaks
+from lib.glfind.find_signal_minima import find_signal_minima
+from lib.glfind.handle_smooth_library_case import handle_smooth_library_case
+from lib.glfind.refine_minima_near_reference_peaks import refine_minima_near_reference_peaks
+from lib.glfind.refine_selected_peaks import refine_selected_peaks
+from lib.matlab.msbackadj import msbackadj
+from lib.matlab.round import matlab_round
+
+
+@dataclass
+class GLFindResult:
+    t_main: NDArray
+    corrected_data: NDArray
+    st_peaks: NDArray
+    st_length: NDArray
+    t_unrecognized_peaks: NDArray
+    unrecognized_peaks: NDArray
+    lib_length: NDArray
+    lib_peak_locations: NDArray
+    t_final_locations: NDArray
+    final_lib_local_minimums: NDArray
+    hpx: NDArray
+    unr: NDArray
+    stp: NDArray
+    main_corr: NDArray
+    all_areas: NDArray
+    all_peaks_corr: NDArray
+    all_peaks: NDArray
+    all_areas_conc: NDArray
+    molarity: NDArray
+    max_lib_peak: NDArray
+    max_lib_value: NDArray
+    total_lib_area: NDArray
+    total_lib_conc: NDArray
+    total_lib_molarity: NDArray
+    x_fill: NDArray
+    y_fill: NDArray
+    x_lib_fill: NDArray
+    y_lib_fill: NDArray
+
+
+def glfind(
+    raw_signal: NDArray[np.floating],
+    standard_peaks: NDArray[np.integer],
+    standard_sizes: NDArray[np.floating],
+    standard_conc: NDArray[np.floating],
+) -> GLFindResult:
+    # 1. Выбор первых 50 значений как шума
+    noise = raw_signal[:50]
+    # Вычитание шума из данных
+    denoised_signal = raw_signal - np.mean(noise)
+    x = np.arange(len(raw_signal))
+    baseline_corrected = msbackadj(x, denoised_signal, window_size=140, step_size=300, quantile_value=0.05)  # коррекция бейзлайна
+
+    selected_peak_locations = find_selected_peaks(baseline_corrected)
+
+    if len(selected_peak_locations) == 0:
+        raise ValueError('Пики геномной библиотеки не были найдены')
+
+    selected_peak_locations, lonely_pks = refine_selected_peaks(baseline_corrected, selected_peak_locations)
+
+    # Вычисление pace
+    pace: np.int64 = standard_peaks[-1] - standard_peaks[0]
+    reference_peaks, pre_unrecognized_peaks = find_reference_peaks(baseline_corrected, lonely_pks, pace)
+
+    if len(reference_peaks) != 2:
+        # TODO Добавить выбор реперных пиков
+        # Мы обрабатывает несколько генных библиотек в одном анализе и для каждой может потребоваться свой выбор
+        raise ValueError('Реперные пики не найдены.')
+
+    # Удаляем пики, которые лежат за пределами реперов
+    selected_peak_locations = selected_peak_locations[(selected_peak_locations >= reference_peaks[0]) & (selected_peak_locations <= reference_peaks[-1])]
+
+    minima_candidates, all_local_minimums = find_signal_minima(baseline_corrected)
+
+    complete_peaks_locations = refine_minima_near_reference_peaks(baseline_corrected, reference_peaks, pre_unrecognized_peaks, minima_candidates)
+
+    # 4. Калибровка данных
+    sdc = np.polyfit(standard_peaks, standard_sizes, 5)  # калибровка по стандарту
+    sdc2 = np.polyfit(standard_sizes, standard_peaks, 5)  # калибровка в обратную сторону для проверки соотвествия границ
+
+    # 5. Обработка данных с учётом калибровки
+    # В этом блоке теперь находим и разбиваем все локальные пики по классам: реперные пики, пики геномной библиотеки и неопознанные пики
+    is_smooth = False
+    (
+        lib_peak_locations,
+        hidden_lib_peak_locations,
+        hidden_lib_areas,
+        final_lib_local_minimums,
+        unrecognized_peaks,
+        max_lib_value,
+
+        st_areas,
+        x_fill_1,
+        x_lib_fill_1,
+        y_fill,
+        y_lib_fill,
+    ) = classify_and_extract_library_peaks(
+        baseline_corrected,
+        selected_peak_locations,
+        reference_peaks,
+        complete_peaks_locations,
+        pre_unrecognized_peaks,
+        sdc,
+        sdc2,
+    )
+    # Если ГБ гладкая/фаикс/слишком низкая
+    if len(hidden_lib_peak_locations) == 0:
+        is_smooth = True
+        (
+            lib_peak_locations,
+            hidden_lib_peak_locations,
+            new_hidden_lib_areas,
+            final_lib_local_minimums,
+            unrecognized_peaks,
+            max_lib_value,
+        ) = handle_smooth_library_case(
+            baseline_corrected,
+            selected_peak_locations,
+            reference_peaks,
+            complete_peaks_locations,
+            all_local_minimums,
+        )
+        hidden_lib_areas = np.append(hidden_lib_areas, new_hidden_lib_areas)
+
+    # Этот блок приводит электрофореграмму геномной библиотеки и стандарта
+    # длин в одну шкалу (выравнивает по ширине и высоте)
+    st_peaks = np.array([standard_peaks[0], standard_peaks[-1]])
+    px = np.polyfit(reference_peaks, st_peaks, 1)  # выравнивание по ширине
+    t = np.arange(len(baseline_corrected))
+    t_main = np.polyval(px, t)
+
+    # Подсчёт концентраций и молярности по реперам (ГБ будет дальше)
+    main_corr = np.polyval(sdc, t_main)
+    st_peaks_corr = np.polyval(sdc, st_peaks)
+
+    st_areas = np.array([st_areas[0], st_areas[-1]])
+    conc = np.array([standard_conc[0], standard_conc[-1]])
+
+    led_one_area = st_areas / (st_peaks_corr / 100)  # считает корректно, проверено (в Matlab)
+    a = np.polyfit(led_one_area, conc, 1)
+
+    st_molarity = ((conc * 1e-3) / (649 * st_peaks_corr)) * 1e9
+
+    hid_lib_length = np.polyval(px, hidden_lib_peak_locations)  # пересчёт по времени
+    hid_lib_peaks_corr = np.polyval(sdc, hid_lib_length)
+
+    hid_one_area = hidden_lib_areas / (hid_lib_peaks_corr / 100)  # пересчёт по длине
+    hid_one_area_conc = np.polyval(a, hid_one_area)  # находим концентрацию в нг/мкл
+    hid_molarity = ((hid_one_area_conc * 1e-3) / (649 * hid_lib_peaks_corr)) * 1e9  # в нмолях/л!
+
+    #  Если ГБ гладкая/фаикс/слишком низкая (потому что там всего один пик - нет локальных)
+    if is_smooth:
+        (
+            lib_length,
+            lib_peaks_corr,
+            lib_areas,
+            lib_one_area,
+            lib_one_area_conc,
+            lib_molarity,
+        ) = compute_smooth_library_concentrations(
+            lib_peak_locations,
+            px,
+            sdc,
+            hidden_lib_areas,
+            hid_one_area,
+            hid_one_area_conc,
+            hid_molarity,
+        )
+    # Если ГБ содержит локальные пики и она была идентифицирована как ГБ (был найдет максимум и скрытые пики):
+    else:
+        (
+            lib_length,
+            lib_peaks_corr,
+            lib_areas,
+            lib_one_area,
+            lib_one_area_conc,
+            lib_molarity,
+        ) = compute_fragmented_library_concentrations(
+            lib_peak_locations,
+            hidden_lib_peak_locations,
+            final_lib_local_minimums,
+            px,
+            sdc,
+            hidden_lib_areas,
+            hid_one_area,
+            hid_one_area_conc,
+            hid_molarity,
+        )
+
+    # one_area = np.concatenate(([led_one_area[0]], lib_one_area, [led_one_area[-1]]))  # площадь на один фрагмент, не нужен в коде, но может понадобиться для проверки!!!
+    all_areas_conc = np.concatenate(([standard_conc[0]], lib_one_area_conc, [standard_conc[-1]]))  # концентрация
+    all_areas = np.concatenate(([st_areas[0]], lib_areas, [st_areas[-1]]))  # общая площадь фрагмента
+    molarity = np.concatenate(([st_molarity[0]], lib_molarity, [st_molarity[-1]]))  # молярность
+
+    all_peaks = np.concatenate(([reference_peaks[0]], lib_peak_locations, [reference_peaks[-1]]))  # время выхода
+    all_peaks_corr = np.concatenate(([st_peaks_corr[0]], lib_peaks_corr, [st_peaks_corr[-1]]))  # длина в пн
+
+    t_final_locations = np.polyval(px, final_lib_local_minimums)
+    t_unrecognized_peaks = np.polyval(px, unrecognized_peaks)  # пересчёт по времени неизвестных пиков
+    unrecognized_peaks_corr = np.polyval(sdc, t_unrecognized_peaks)  # только неопознанные пики
+    max_lib_peak = main_corr[max_lib_value]  # максимальный пик библиотеки
+
+    total_lib_area = np.sum(lib_areas)
+    total_lib_conc = np.sum(lib_one_area_conc)
+    total_lib_molarity = np.sum(lib_molarity)
+
+    # Закрашиваем красным ложные пики и широкую библиотеку
+    if len(x_fill_1):
+        x_fill_1 = np.array([x_fill_1[0], x_fill_1[-1]])
+        x_fill_1 = t_main[x_fill_1.astype(int)]
+        x_fill = np.linspace(x_fill_1[0], x_fill_1[-1], 100)
+    else:
+        x_fill = np.empty(0)
+
+    if len(x_lib_fill_1):
+        x_lib_fill_1 = np.array([x_lib_fill_1[0], x_lib_fill_1[-1]])
+        x_lib_fill_1 = t_main[x_lib_fill_1.astype(int)]
+        x_lib_fill = np.linspace(x_lib_fill_1[0], x_lib_fill_1[-1], 100)
+    else:
+        x_lib_fill = np.empty(0)
+
+    hpx = matlab_round(lib_peaks_corr)
+    unr = matlab_round(unrecognized_peaks_corr)
+    stp = matlab_round([standard_sizes[0], standard_sizes[-1]])
+
+    return GLFindResult(
+        t_main=t_main,
+        corrected_data=baseline_corrected,
+
+        st_peaks=st_peaks,
+        st_length=reference_peaks,
+        stp=stp,
+
+        t_unrecognized_peaks=t_unrecognized_peaks,
+        unrecognized_peaks=unrecognized_peaks,
+        unr=unr,
+
+        lib_length=lib_length,
+        lib_peak_locations=lib_peak_locations,
+        hpx=hpx,
+
+        t_final_locations=t_final_locations,
+        final_lib_local_minimums=final_lib_local_minimums,
+        main_corr=main_corr,
+
+        all_areas=all_areas,
+        all_peaks_corr=all_peaks_corr,
+        all_peaks=all_peaks,
+        all_areas_conc=all_areas_conc,
+        molarity=molarity,
+
+        max_lib_peak=max_lib_peak,
+        max_lib_value=max_lib_value,
+        total_lib_area=total_lib_area,
+        total_lib_conc=total_lib_conc,
+        total_lib_molarity=total_lib_molarity,
+
+        x_fill=x_fill,
+        y_fill=y_fill,
+
+        x_lib_fill=x_lib_fill,
+        y_lib_fill=y_lib_fill,
+    )
