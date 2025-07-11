@@ -73,7 +73,7 @@ export function prepareGenLibAnalyzed(analyzeResultData: AnalyzeResultData): Dat
     }];
     if (analyzeResultData.st_peaks.length > 0) {
         result.push({
-            title: 'Пики',
+            title: 'Реперные пики',
             color: 'secondary',
             type: 'point',
             pointStyle: 'crossRot',
@@ -84,7 +84,7 @@ export function prepareGenLibAnalyzed(analyzeResultData: AnalyzeResultData): Dat
     }
     if (analyzeResultData.t_unrecognized_peaks.length > 0) {
         result.push({
-            title: 'Пики (неизвестные)',
+            title: 'Нераспознанные пики',
             color: 'secondary',
             type: 'point',
             pointStyle: 'cross',
@@ -95,7 +95,7 @@ export function prepareGenLibAnalyzed(analyzeResultData: AnalyzeResultData): Dat
     }
     if (analyzeResultData.lib_length.length > 0) {
         result.push({
-            title: 'Пики (библиотека)',
+            title: 'Библиотечные пики',
             color: 'secondary',
             type: 'point',
             pointStyle: 'circle',

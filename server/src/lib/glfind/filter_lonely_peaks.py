@@ -9,6 +9,7 @@ def filter_lonely_peaks(
 ) -> NDArray[np.integer]:
     """Удаление одного из двух подряд идущих одиночных пиков, если между ними нет других пиков"""
 
+    copy_selected = np.copy(selected_peaks)
     filtered_lonely = np.copy(lonely_peaks)
 
     i = 0
@@ -17,7 +18,7 @@ def filter_lonely_peaks(
         next_peak = filtered_lonely[i + 1]
 
         # Проверка: есть ли другие пики между current и next
-        in_between = (selected_peaks > current_peak) & (selected_peaks < next_peak)
+        in_between = (copy_selected > current_peak) & (copy_selected < next_peak)
         if not np.any(in_between):  # если НЕ найдены локальные пики ГБ, значит текующие пики лежат слева или справа от ГБ
             # Границы для текущего и следующего пика
             left1 = max(current_peak - 4, 0)
@@ -29,8 +30,10 @@ def filter_lonely_peaks(
             area1 = np.trapezoid(corrected_signal[left1:right1 + 1])
             area2 = np.trapezoid(corrected_signal[left2:right2 + 1])
             if area1 > area2:
+                copy_selected = copy_selected[copy_selected != next_peak]
                 filtered_lonely = np.delete(filtered_lonely, i + 1)
             else:
+                copy_selected = copy_selected[copy_selected != current_peak]
                 filtered_lonely = np.delete(filtered_lonely, i)
             # Обновляем: начинаем сначала
             i = 0

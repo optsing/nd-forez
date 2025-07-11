@@ -28,7 +28,7 @@ def find_reference_peaks(
             rejected_peaks.append(cur_peak_idx)
 
     if len(recognized_peaks) == 0:
-        end_peak = candidate_peaks[-1]
+        end_peak = rejected_peaks.pop()  # Последний нераспознанный, удаляем из нераспознанных
     elif len(recognized_peaks) == 1:
         end_peak = recognized_peaks[0]
     else:
