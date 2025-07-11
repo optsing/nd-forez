@@ -3,7 +3,11 @@ from numpy.typing import NDArray
 from scipy.integrate import trapezoid
 
 
-def find_reference_peaks(baseline_corrected: NDArray, candidate_peaks: NDArray, expected_spacing: np.int64) -> tuple[NDArray, NDArray]:
+def find_reference_peaks(
+    baseline_corrected: NDArray[np.floating],
+    candidate_peaks: NDArray[np.integer],
+    expected_spacing: np.integer,
+) -> tuple[NDArray[np.integer], NDArray[np.integer]]:
     """Нахождение двух реперных пиков на основе ожидаемого расстояния между ними"""
 
     if len(candidate_peaks) < 2:
@@ -46,4 +50,4 @@ def find_reference_peaks(baseline_corrected: NDArray, candidate_peaks: NDArray, 
         # Выбираем как второй реперный пик
         end_peak = recognized_peaks[max_area_idx]
 
-    return np.array([start_peak_idx, end_peak]), np.array(rejected_peaks)
+    return np.array([start_peak_idx, end_peak], dtype=np.int64), np.array(rejected_peaks, dtype=np.int64)

@@ -6,7 +6,16 @@ from numpy.typing import NDArray
 from scipy.integrate import quad
 
 
-def compute_hidden_library_area(baseline_corrected: NDArray, start_index, end_index, max_peak_idx) -> tuple[NDArray, NDArray, NDArray]:
+def compute_hidden_library_area(
+    baseline_corrected: NDArray[np.floating],
+    start_index: np.integer,
+    end_index: np.integer,
+    max_peak_idx: np.integer,
+) -> tuple[
+    NDArray[np.integer],
+    NDArray[np.floating],
+    NDArray[np.integer],
+]:
     """Вычисление расположения и площади скрытого пика библиотеки"""
 
     left_median = (start_index + max_peak_idx) / 2  # Находим медианное значение между start_index и maxLibValue (левая середина пика ГБ)
@@ -35,4 +44,4 @@ def compute_hidden_library_area(baseline_corrected: NDArray, start_index, end_in
         area = quad(interp_func, x_start, x_end)[0]
         hidden_lib_areas.append(area)
 
-    return library_peak_range, np.array(hidden_lib_areas), hidden_final_lib_local_minimums
+    return library_peak_range, np.array(hidden_lib_areas, dtype=np.float64), hidden_final_lib_local_minimums

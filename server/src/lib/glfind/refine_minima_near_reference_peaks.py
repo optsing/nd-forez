@@ -3,11 +3,11 @@ from numpy.typing import NDArray
 
 
 def refine_minima_near_reference_peaks(
-    baseline_corrected: NDArray[np.float64],
-    reference_peaks: NDArray[np.int64],
-    unrecognized_peaks: NDArray[np.int64],
-    minima_candidates: NDArray[np.int64],
-) -> NDArray[np.int64]:
+    baseline_corrected: NDArray[np.floating],
+    reference_peaks: NDArray[np.integer],
+    unrecognized_peaks: NDArray[np.integer],
+    minima_candidates: NDArray[np.integer],
+) -> NDArray[np.integer]:
     """Уточнение списка минимумов, проверяя расстояние от реперных пиков до ближайших минимумов"""
 
     additional_minima = []

@@ -3,7 +3,9 @@ from numpy.typing import NDArray
 from scipy.signal import find_peaks, savgol_filter
 
 
-def find_selected_peaks(baseline_corrected: NDArray):
+def find_selected_peaks(
+    baseline_corrected: NDArray[np.floating],
+) -> NDArray[np.integer]:
     """Обнаружение значимых пиков"""
 
     smoothed = savgol_filter(baseline_corrected, 5, 1)

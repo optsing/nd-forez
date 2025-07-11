@@ -1,21 +1,24 @@
 from lib.glfind.compute_hidden_library_area import compute_hidden_library_area
 
-
 import numpy as np
 from numpy.typing import NDArray
 from scipy.integrate import quad
 
 
-from typing import Any
-
-
 def handle_smooth_library_case(
-    baseline_corrected: NDArray,
-    selected_peak_locations: NDArray,
-    reference_peaks: NDArray,
-    complete_peaks_locations: NDArray,
-    all_local_minimums: NDArray,
-) -> tuple[NDArray, NDArray, NDArray, NDArray, NDArray, Any]:
+    baseline_corrected: NDArray[np.floating],
+    selected_peak_locations: NDArray[np.integer],
+    reference_peaks: NDArray[np.integer],
+    complete_peaks_locations: NDArray[np.integer],
+    all_local_minimums: NDArray[np.integer],
+) -> tuple[
+    NDArray[np.integer],
+    NDArray[np.integer],
+    NDArray[np.floating],
+    NDArray[np.integer],
+    NDArray[np.integer],
+    np.integer,
+]:
     """Обработка случая, когда геномная библиотека гладкая или содержит один невыраженный пик"""
     rest_peaks_areas = np.empty(0)
     rest_peaks = np.copy(selected_peak_locations)  # Собираем все найденные пики

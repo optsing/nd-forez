@@ -16,34 +16,34 @@ from lib.matlab.round import matlab_round
 
 @dataclass
 class GLFindResult:
-    t_main: NDArray
-    corrected_data: NDArray
-    st_peaks: NDArray
-    st_length: NDArray
-    t_unrecognized_peaks: NDArray
-    unrecognized_peaks: NDArray
-    lib_length: NDArray
-    lib_peak_locations: NDArray
-    t_final_locations: NDArray
-    final_lib_local_minimums: NDArray
-    hpx: NDArray
-    unr: NDArray
-    stp: NDArray
-    main_corr: NDArray
-    all_areas: NDArray
-    all_peaks_corr: NDArray
-    all_peaks: NDArray
-    all_areas_conc: NDArray
-    molarity: NDArray
-    max_lib_peak: NDArray
-    max_lib_value: NDArray
-    total_lib_area: NDArray
-    total_lib_conc: NDArray
-    total_lib_molarity: NDArray
-    x_fill: NDArray
-    y_fill: NDArray
-    x_lib_fill: NDArray
-    y_lib_fill: NDArray
+    t_main: NDArray[np.floating]
+    corrected_data: NDArray[np.floating]
+    st_peaks: NDArray[np.integer]
+    st_length: NDArray[np.integer]
+    t_unrecognized_peaks: NDArray[np.floating]
+    unrecognized_peaks: NDArray[np.integer]
+    lib_length: NDArray[np.floating]
+    lib_peak_locations: NDArray[np.integer]
+    t_final_locations: NDArray[np.floating]
+    final_lib_local_minimums: NDArray[np.integer]
+    hpx: NDArray[np.integer]
+    unr: NDArray[np.integer]
+    stp: NDArray[np.integer]
+    main_corr: NDArray[np.floating]
+    all_areas: NDArray[np.floating]
+    all_peaks_corr: NDArray[np.floating]
+    all_peaks: NDArray[np.integer]
+    all_areas_conc: NDArray[np.floating]
+    molarity: NDArray[np.floating]
+    max_lib_peak: np.floating
+    max_lib_value: np.integer
+    total_lib_area: np.floating
+    total_lib_conc: np.floating
+    total_lib_molarity: np.floating
+    x_fill: NDArray[np.floating]
+    y_fill: NDArray[np.floating]
+    x_lib_fill: NDArray[np.floating]
+    y_lib_fill: NDArray[np.floating]
 
 
 def glfind(

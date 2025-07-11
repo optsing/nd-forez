@@ -3,7 +3,9 @@ from numpy.typing import NDArray
 from scipy.signal import find_peaks
 
 
-def find_signal_minima(baseline_corrected: NDArray[np.float64]) -> tuple[NDArray[np.int64], NDArray[np.int64]]:
+def find_signal_minima(
+    baseline_corrected: NDArray[np.floating],
+) -> tuple[NDArray[np.integer], NDArray[np.integer]]:
     """Нахождение минимумов электрофореграммы"""
 
     inverted_signal = -baseline_corrected

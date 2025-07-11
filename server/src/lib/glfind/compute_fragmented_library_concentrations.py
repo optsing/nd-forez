@@ -3,16 +3,23 @@ from numpy.typing import NDArray
 
 
 def compute_fragmented_library_concentrations(
-    lib_peak_locations: NDArray,
-    hidden_lib_peak_locations: NDArray,
-    final_lib_local_minimums: NDArray,
-    px: NDArray,
-    sdc: NDArray,
-    hidden_lib_areas: NDArray,
-    hid_one_area: NDArray,
-    hid_one_area_conc: NDArray,
-    hid_molarity: NDArray,
-) -> tuple[NDArray, NDArray, NDArray, NDArray, NDArray, NDArray]:
+    lib_peak_locations: NDArray[np.integer],
+    hidden_lib_peak_locations: NDArray[np.integer],
+    final_lib_local_minimums: NDArray[np.integer],
+    px: NDArray[np.floating],
+    sdc: NDArray[np.floating],
+    hidden_lib_areas: NDArray[np.floating],
+    hid_one_area: NDArray[np.floating],
+    hid_one_area_conc: NDArray[np.floating],
+    hid_molarity: NDArray[np.floating],
+) -> tuple[
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+]:
     """Вычисление суммарных характеристик (площадь, концентрацию, молярность) для библиотеки с выраженными локальными пиками"""
     # Проверка на то, лежат ли LibPeakLocations в пределах Hidden_LibPeakLocations: если нет, то удаляются
     check_lib_peak_locations = lib_peak_locations[(lib_peak_locations < hidden_lib_peak_locations[0]) | (lib_peak_locations > hidden_lib_peak_locations[-1])]

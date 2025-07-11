@@ -2,7 +2,10 @@ import numpy as np
 from numpy.typing import NDArray
 
 
-def refine_selected_peaks(baseline_corrected: NDArray, selected_peaks: NDArray) -> tuple[NDArray, NDArray]:
+def refine_selected_peaks(
+    baseline_corrected: NDArray[np.floating],
+    selected_peaks: NDArray[np.integer],
+) -> tuple[NDArray[np.integer], NDArray[np.integer]]:
     """Уточнение местоположения одиночных пиков"""
 
     lonely_peaks = []
@@ -27,4 +30,4 @@ def refine_selected_peaks(baseline_corrected: NDArray, selected_peaks: NDArray) 
             refined_peaks[i] = local_max_idx  # заменяем на найденный максимум
             lonely_peaks.append(local_max_idx)  # Добавляем в массив standard_pks максимальное значение
 
-    return refined_peaks, np.array(lonely_peaks)
+    return refined_peaks, np.array(lonely_peaks, dtype=np.int64)

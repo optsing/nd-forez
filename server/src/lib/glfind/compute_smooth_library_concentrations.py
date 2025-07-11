@@ -3,14 +3,21 @@ from numpy.typing import NDArray
 
 
 def compute_smooth_library_concentrations(
-    lib_peak_locations: NDArray,
-    px: NDArray,
-    sdc: NDArray,
-    hidden_lib_areas: NDArray,
-    hid_one_area: NDArray,
-    hid_one_area_conc: NDArray,
-    hid_molarity: NDArray,
-) -> tuple[NDArray, NDArray, NDArray, NDArray, NDArray, NDArray]:
+    lib_peak_locations: NDArray[np.integer],
+    px: NDArray[np.floating],
+    sdc: NDArray[np.floating],
+    hidden_lib_areas: NDArray[np.floating],
+    hid_one_area: NDArray[np.floating],
+    hid_one_area_conc: NDArray[np.floating],
+    hid_molarity: NDArray[np.floating],
+) -> tuple[
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+]:
     """Вычисление суммарных характеристик (площадь, концентрацию, молярность) для гладкой геномной библиотеки"""
     #  считаем концентрации ГБ
     lib_length = np.polyval(px, lib_peak_locations)

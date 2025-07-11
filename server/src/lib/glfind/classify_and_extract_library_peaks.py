@@ -7,26 +7,40 @@ from scipy.integrate import quad
 
 
 def classify_and_extract_library_peaks(
-    baseline_corrected: NDArray,
-    selected_peak_locations: NDArray,
-    reference_peaks: NDArray,
-    complete_peaks_locations: NDArray,
-    pre_unrecognized_peaks: NDArray,
-    sdc: NDArray,
-    sdc2: NDArray,
-) -> tuple[NDArray, NDArray, NDArray, NDArray, NDArray, NDArray, NDArray, NDArray, NDArray, NDArray, NDArray]:
+    baseline_corrected: NDArray[np.floating],
+    selected_peak_locations: NDArray[np.integer],
+    reference_peaks: NDArray[np.integer],
+    complete_peaks_locations: NDArray[np.integer],
+    pre_unrecognized_peaks: NDArray[np.integer],
+    sdc: NDArray[np.floating],
+    sdc2: NDArray[np.floating],
+) -> tuple[
+    NDArray[np.integer],
+    NDArray[np.integer],
+    NDArray[np.floating],
+    NDArray[np.integer],
+    NDArray[np.integer],
+    np.integer,
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+    NDArray[np.floating],
+]:
     """Обработка данных с учётом калибровки: классификация пиков и извлечение информации о библиотеке"""
 
     lib_peak_locations = np.empty(0, dtype=np.int64)
     hidden_lib_peak_locations = np.empty(0, dtype=np.int64)
     unrecognized_peaks = np.empty(0, dtype=np.int64)
-    hidden_lib_areas = np.empty(0)
-    final_lib_local_minimums = np.empty(0)
-    x_fill_1 = np.empty(0)
-    x_lib_fill_1 = np.empty(0)
-    y_fill = np.empty(0)
-    y_lib_fill = np.empty(0)
-    st_areas = np.empty(0)
+    final_lib_local_minimums = np.empty(0, dtype=np.int64)
+    hidden_lib_areas = np.empty(0, dtype=np.float64)
+    x_fill_1 = np.empty(0, dtype=np.float64)
+    x_lib_fill_1 = np.empty(0, dtype=np.float64)
+    y_fill = np.empty(0, dtype=np.float64)
+    y_lib_fill = np.empty(0, dtype=np.float64)
+    st_areas = np.empty(0, dtype=np.float64)
+
+    max_lib_value = np.int64(-1)
 
     for i in range(len(complete_peaks_locations) - 1):
         # Как обычно проверяем наличие локальных максимумов между текущей парой локальных минимумов
@@ -61,8 +75,8 @@ def classify_and_extract_library_peaks(
             f = complete_peaks_locations[i + 1]
 
             # Находим максимальное значение между этими индексами
-            max_value_lib = np.max(baseline_corrected[start_index:end_index + 1])
-            max_lib_value = np.where(baseline_corrected == max_value_lib)[0]
+            max_lib_value = start_index + np.argmax(baseline_corrected[start_index:end_index + 1])
+            max_value_lib = baseline_corrected[max_lib_value]
             max_lib_value_corr = np.polyval(sdc, max_lib_value)
 
             lower_bound = np.polyval(sdc2, max_lib_value_corr - 200)
