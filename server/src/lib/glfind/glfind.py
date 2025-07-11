@@ -4,6 +4,7 @@ from numpy.typing import NDArray
 from lib.glfind.classify_and_extract_library_peaks import classify_and_extract_library_peaks
 from lib.glfind.compute_fragmented_library_concentrations import compute_fragmented_library_concentrations
 from lib.glfind.compute_smooth_library_concentrations import compute_smooth_library_concentrations
+from lib.glfind.filter_lonely_peaks import filter_lonely_peaks
 from lib.glfind.find_reference_peaks import find_reference_peaks
 from lib.glfind.find_selected_peaks import find_selected_peaks
 from lib.glfind.find_signal_minima import find_signal_minima
@@ -65,7 +66,9 @@ def glfind(
     if len(selected_peak_candidates) == 0:
         raise ValueError('Пики геномной библиотеки не были найдены')
 
-    selected_peak_locations, lonely_peaks = refine_selected_peaks(baseline_corrected, selected_peak_candidates)
+    selected_peak_locations, lonely_peaks_candidates = refine_selected_peaks(baseline_corrected, selected_peak_candidates)
+
+    lonely_peaks = filter_lonely_peaks(baseline_corrected, selected_peak_locations, lonely_peaks_candidates)
 
     # Вычисление pace
     pace: np.int64 = standard_peaks[-1] - standard_peaks[0]

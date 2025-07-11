@@ -6,7 +6,7 @@ def refine_selected_peaks(
     baseline_corrected: NDArray[np.floating],
     selected_peaks: NDArray[np.integer],
 ) -> tuple[NDArray[np.integer], NDArray[np.integer]]:
-    """Уточнение местоположения одиночных пиков"""
+    """Уточнение местоположения пиков и выделение одиночных"""
 
     lonely_peaks = []
     # Мы не мутируем аргумент, а возвращаем новый массив
