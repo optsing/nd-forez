@@ -3,22 +3,22 @@ from numpy.typing import NDArray
 from scipy.integrate import trapezoid
 
 
-def find_reference_peaks(
-    baseline_corrected: NDArray[np.floating],
-    candidate_peaks: NDArray[np.integer],
+def select_reference_peaks(
+    peaks: NDArray[np.integer],
     expected_spacing: np.integer,
+    baseline_corrected: NDArray[np.floating],
 ) -> tuple[NDArray[np.integer], NDArray[np.integer]]:
     """Нахождение двух реперных пиков на основе ожидаемого расстояния между ними"""
 
-    if len(candidate_peaks) < 2:
+    if len(peaks) < 2:
         return np.empty(0, dtype=np.int64), np.empty(0, dtype=np.int64)
 
-    start_peak_idx = candidate_peaks[0]
+    start_peak_idx = peaks[0]
     recognized_peaks = []
     rejected_peaks = []
 
     # Поиск второго пика
-    for cur_peak_idx in candidate_peaks[1:]:
+    for cur_peak_idx in peaks[1:]:
         # Вычитание базового значения
         distance = cur_peak_idx - start_peak_idx
         # Проверка расстоянияs

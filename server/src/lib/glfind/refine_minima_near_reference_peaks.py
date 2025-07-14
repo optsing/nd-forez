@@ -3,10 +3,10 @@ from numpy.typing import NDArray
 
 
 def refine_minima_near_reference_peaks(
-    baseline_corrected: NDArray[np.floating],
+    minima_candidates: NDArray[np.integer],
     reference_peaks: NDArray[np.integer],
     unrecognized_peaks: NDArray[np.integer],
-    minima_candidates: NDArray[np.integer],
+    corrected_signal: NDArray[np.floating],
 ) -> NDArray[np.integer]:
     """Уточнение списка минимумов, проверяя расстояние от реперных пиков до ближайших минимумов"""
 
@@ -42,7 +42,7 @@ def refine_minima_near_reference_peaks(
             end = max(ref_idx, unrec_idx)
 
             # Поиск наименьшего значения в указанном диапазоне и его индекса
-            min_idx = start + np.argmin(baseline_corrected[start:end + 1])
+            min_idx = start + np.argmin(corrected_signal[start:end + 1])
 
             # Удаление значений из complete_Peaks_Locations, лежащих в этом диапазоне
             refined_minima = refined_minima[

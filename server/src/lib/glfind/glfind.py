@@ -4,14 +4,14 @@ from numpy.typing import NDArray
 from lib.glfind.classify_and_extract_library_peaks import classify_and_extract_library_peaks
 from lib.glfind.compute_fragmented_library_concentrations import compute_fragmented_library_concentrations
 from lib.glfind.compute_smooth_library_concentrations import compute_smooth_library_concentrations
-from lib.glfind.filter_lonely_peaks import filter_lonely_peaks
-from lib.glfind.find_reference_peaks import find_reference_peaks
-from lib.glfind.find_selected_peaks import find_selected_peaks
+from lib.glfind.filter_isolated_peaks import filter_isolated_peaks
+from lib.glfind.select_reference_peaks import select_reference_peaks
+from lib.glfind.find_significant_peaks import find_significant_peaks
 from lib.glfind.find_signal_minima import find_signal_minima
 from lib.glfind.handle_smooth_library_case import handle_smooth_library_case
-from lib.glfind.refine_lib_peak_locations import refine_lib_peak_locations
+from lib.glfind.refine_library_peaks import refine_library_peaks
 from lib.glfind.refine_minima_near_reference_peaks import refine_minima_near_reference_peaks
-from lib.glfind.refine_selected_peaks import refine_selected_peaks
+from lib.glfind.select_isolated_peaks import select_isolated_peaks
 from lib.matlab.msbackadj import msbackadj
 from lib.matlab.round import matlab_round
 
@@ -59,20 +59,20 @@ def glfind(
     # Вычитание шума из данных
     denoised_signal = raw_signal - np.mean(noise)
     x = np.arange(len(raw_signal))
-    baseline_corrected = msbackadj(x, denoised_signal, window_size=140, step_size=300, quantile_value=0.05)  # коррекция бейзлайна
+    corrected_signal = msbackadj(x, denoised_signal, window_size=140, step_size=300, quantile_value=0.05)  # коррекция бейзлайна
 
-    selected_peak_candidates = find_selected_peaks(baseline_corrected)
+    significant_peak_candidates = find_significant_peaks(corrected_signal)
 
-    if len(selected_peak_candidates) == 0:
+    if len(significant_peak_candidates) == 0:
         raise ValueError('Пики геномной библиотеки не были найдены')
 
-    selected_peak_locations, lonely_peaks_candidates = refine_selected_peaks(baseline_corrected, selected_peak_candidates)
+    isolated_peaks_candidates, significant_peaks = select_isolated_peaks(significant_peak_candidates, corrected_signal)
 
-    lonely_peaks = filter_lonely_peaks(baseline_corrected, selected_peak_locations, lonely_peaks_candidates)
+    isolated_peaks = filter_isolated_peaks(isolated_peaks_candidates, significant_peaks, corrected_signal)
 
     # Вычисление pace
     pace: np.int64 = standard_peaks[-1] - standard_peaks[0]
-    reference_peaks, pre_unrecognized_peaks = find_reference_peaks(baseline_corrected, lonely_peaks, pace)
+    reference_peaks, pre_unrecognized_peaks = select_reference_peaks(isolated_peaks, pace, corrected_signal)
 
     if len(reference_peaks) != 2:
         # TODO Добавить выбор реперных пиков
@@ -80,11 +80,11 @@ def glfind(
         raise ValueError('Реперные пики не найдены.')
 
     # Удаляем пики, которые лежат за пределами реперов
-    selected_peak_locations = selected_peak_locations[(selected_peak_locations >= reference_peaks[0]) & (selected_peak_locations <= reference_peaks[-1])]
+    significant_peaks = significant_peaks[(significant_peaks >= reference_peaks[0]) & (significant_peaks <= reference_peaks[-1])]
 
-    minima_candidates, all_local_minimums = find_signal_minima(baseline_corrected)
+    minima_candidates, all_local_minimums = find_signal_minima(corrected_signal)
 
-    complete_peaks_locations = refine_minima_near_reference_peaks(baseline_corrected, reference_peaks, pre_unrecognized_peaks, minima_candidates)
+    complete_peaks_locations = refine_minima_near_reference_peaks(minima_candidates, reference_peaks, pre_unrecognized_peaks, corrected_signal)
 
     # 4. Калибровка данных
     sdc = np.polyfit(standard_peaks, standard_sizes, 5)  # калибровка по стандарту
@@ -93,7 +93,7 @@ def glfind(
     # 5. Обработка данных с учётом калибровки
     # В этом блоке теперь находим и разбиваем все локальные пики по классам: реперные пики, пики геномной библиотеки и неопознанные пики
     (
-        lib_peak_candidates,
+        library_peak_candidates,
         hidden_lib_peak_locations,
         hidden_lib_areas,
         lib_local_minima_candidates,
@@ -106,8 +106,8 @@ def glfind(
         y_fill,
         y_lib_fill,
     ) = classify_and_extract_library_peaks(
-        baseline_corrected,
-        selected_peak_locations,
+        corrected_signal,
+        significant_peaks,
         reference_peaks,
         complete_peaks_locations,
         pre_unrecognized_peaks,
@@ -120,23 +120,23 @@ def glfind(
     # Если ГБ гладкая/фаикс/слишком низкая
     if is_smooth:
         (
-            lib_peak_locations,
+            library_peaks,
             hidden_lib_peak_locations,
             new_hidden_lib_areas,
             final_lib_local_minimums,
             unrecognized_peaks,
             max_lib_value,
         ) = handle_smooth_library_case(
-            baseline_corrected,
-            selected_peak_locations,
+            corrected_signal,
+            significant_peaks,
             reference_peaks,
             complete_peaks_locations,
             all_local_minimums,
         )
         hidden_lib_areas = np.append(hidden_lib_areas, new_hidden_lib_areas)
     else:
-        lib_peak_locations, final_lib_local_minimums = refine_lib_peak_locations(
-            lib_peak_candidates,
+        library_peaks, final_lib_local_minimums = refine_library_peaks(
+            library_peak_candidates,
             hidden_lib_peak_locations,
             lib_local_minima_candidates,
         )
@@ -145,7 +145,7 @@ def glfind(
     # длин в одну шкалу (выравнивает по ширине и высоте)
     st_peaks = np.array([standard_peaks[0], standard_peaks[-1]], dtype=np.int64)
     px = np.polyfit(reference_peaks, st_peaks, 1)  # выравнивание по ширине
-    t = np.arange(len(baseline_corrected))
+    t = np.arange(len(corrected_signal))
     t_main = np.polyval(px, t)
 
     # Подсчёт концентраций и молярности по реперам (ГБ будет дальше)
@@ -188,7 +188,7 @@ def glfind(
             lib_one_area_conc,
             lib_molarity,
         ) = compute_fragmented_library_concentrations(
-            lib_peak_locations,
+            library_peaks,
             hidden_lib_peak_locations,
             hidden_lib_areas,
             hid_one_area,
@@ -197,7 +197,7 @@ def glfind(
         )
 
     # считаем концентрации ГБ
-    lib_length = np.polyval(px, lib_peak_locations)
+    lib_length = np.polyval(px, library_peaks)
     lib_peaks_corr = np.polyval(sdc, lib_length)
 
     # one_area = np.concatenate(([led_one_area[0]], lib_one_area, [led_one_area[-1]]))  # площадь на один фрагмент, не нужен в коде, но может понадобиться для проверки!!!
@@ -205,7 +205,7 @@ def glfind(
     all_areas = np.concatenate(([st_areas[0]], lib_areas, [st_areas[-1]]))  # общая площадь фрагмента
     molarity = np.concatenate(([st_molarity[0]], lib_molarity, [st_molarity[-1]]))  # молярность
 
-    all_peaks = np.concatenate(([reference_peaks[0]], lib_peak_locations, [reference_peaks[-1]]))  # время выхода
+    all_peaks = np.concatenate(([reference_peaks[0]], library_peaks, [reference_peaks[-1]]))  # время выхода
     all_peaks_corr = np.concatenate(([st_peaks_corr[0]], lib_peaks_corr, [st_peaks_corr[-1]]))  # длина в пн
 
     t_final_locations = np.polyval(px, final_lib_local_minimums)
@@ -238,7 +238,7 @@ def glfind(
 
     return GLFindResult(
         t_main=t_main,
-        corrected_data=baseline_corrected,
+        corrected_data=corrected_signal,
 
         st_peaks=st_peaks,
         st_length=reference_peaks,
@@ -249,7 +249,7 @@ def glfind(
         unr=unr,
 
         lib_length=lib_length,
-        lib_peak_locations=lib_peak_locations,
+        lib_peak_locations=library_peaks,
         hpx=hpx,
 
         t_final_locations=t_final_locations,
