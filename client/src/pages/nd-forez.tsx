@@ -17,13 +17,14 @@ import {
 import Zoom from 'chartjs-plugin-zoom';
 import Annotation from 'chartjs-plugin-annotation';
 import { useSearchParams } from 'react-router';
-import { analyzeData, getParseResult, parseFiles, getErrorMessage } from '../api';
 import { useAlert } from '../context/alert-context';
 import StandardChartContainer from '../components/standard-chart-container';
 import GenLibChartContainer from '../components/genlib-chart-conainer';
 import { useOffscreenChartsToPdf } from '../helpers/pdf';
 import { Chromatogram } from '../helpers/chromatogram';
-
+import { useAppSettings } from '../context/app-settings';
+import { analyzeData as serverAnalyzeData, parseFiles as serverParseFiles, getParseResult, getErrorMessage } from '../helpers/api';
+import { analyzeData as clientAnalyzeData, parseFiles as clientParseFiles } from '../helpers/pyodide-api';
 
 ChartJS.register(
     LineElement,
@@ -57,6 +58,11 @@ const FileUploadPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const { generatePdf, isGeneratingPDF } = useOffscreenChartsToPdf();
+
+    const { localCalculations } = useAppSettings();
+
+    const parseFiles = localCalculations ? clientParseFiles : serverParseFiles;
+    const analyzeData = localCalculations ? clientAnalyzeData : serverAnalyzeData;
 
     useEffect(() => {
         const fn = async (id: number) => {

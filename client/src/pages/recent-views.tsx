@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, CircularProgress, List, ListItemButton, ListItemText, Paper, Typography } from "@mui/material";
-import { getErrorMessage, getParseResults } from "../api";
+import { getErrorMessage, getParseResults } from "../helpers/api";
 import { useAlert } from "../context/alert-context";
 import { Link } from "react-router";
 

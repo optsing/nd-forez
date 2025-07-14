@@ -2,9 +2,11 @@ import { ApiTwoTone, AreaChartTwoTone, HistoryTwoTone } from '@mui/icons-materia
 import { Outlet } from 'react-router';
 import { ReactRouterAppProvider } from '@toolpad/core/react-router';
 import type { Navigation, Branding, AppTheme } from '@toolpad/core/AppProvider';
+import { createTheme } from '@mui/material/styles';
+
 import Logo from './components/logo';
 import { AlertProvider } from './context/alert-context';
-import { createTheme } from '@mui/material/styles';
+import { AppSettingsProvider } from './context/app-settings';
 
 const NAVIGATION: Navigation = [
   {
@@ -20,7 +22,7 @@ const NAVIGATION: Navigation = [
     title: 'API',
     icon: <ApiTwoTone />,
     segment: 'api-doc',
-  }
+  },
 ];
 
 const BRANDING: Branding = {
@@ -33,21 +35,25 @@ const theme: AppTheme = createTheme({
     colorSchemeSelector: 'data-toolpad-color-scheme',
   },
   defaultColorScheme: 'light',
-  colorSchemes: { light: {
-    palette: {
-      background: {
-        default: '#f5f5f5',
+  colorSchemes: {
+    light: {
+      palette: {
+        background: {
+          default: '#f5f5f5',
+        },
       },
-    },
-  }, dark: true },
+    }, dark: true
+  },
 });
 
 export default function App() {
   return (
     <ReactRouterAppProvider navigation={NAVIGATION} branding={BRANDING} theme={theme}>
-      <AlertProvider>
-        <Outlet />
-      </AlertProvider>
+      <AppSettingsProvider>
+        <AlertProvider>
+          <Outlet />
+        </AlertProvider>
+      </AppSettingsProvider>
     </ReactRouterAppProvider>
   );
 }

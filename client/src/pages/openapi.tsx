@@ -1,4 +1,4 @@
-import { API_URL } from "../api";
+import { API_URL } from "../helpers/api";
 
 
 const OpenAPIPage: React.FC = () => {
