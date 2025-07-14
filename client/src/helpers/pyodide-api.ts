@@ -1,5 +1,5 @@
 import { AnalyzeInput, AnalyzeResult, GenLib, ParseResult, SizeStandard } from "../models/models";
-import PyodideWorker from './pyodide-worker.ts?worker';
+import PyodideWorker from './python-worker.ts?worker';
 
 const pyodide = new PyodideWorker();
 
