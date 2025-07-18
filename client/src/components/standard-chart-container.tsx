@@ -11,7 +11,8 @@ import {
 import { SizeStandard } from '../models/models';
 import ChartContainer from './chart-container';
 import ChartWithZoom from './chart-with-zoom';
-import { prepareStadardData } from '../chart-data/chart-data';
+import { prepareStadardData, prepareStandartTable } from '../chart-data/chart-data';
+import SimpleTable from './simple-table';
 
 
 interface Props {
@@ -55,6 +56,11 @@ const StandardChartContainer: React.FC<Props> = ({
                         height={chartHeight}
                         rawData={sizeStandards[selected]}
                         prepare={prepareStadardData}
+                        sx={{ mb: 3 }}
+                    />
+                    <SimpleTable
+                        rawData={sizeStandards[selected]}
+                        prepare={prepareStandartTable}
                     />
                 </Paper>
             </ChartContainer>

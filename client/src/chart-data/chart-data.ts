@@ -123,79 +123,101 @@ export function prepareGenLibAnalyzed(analyzeResultData: AnalyzeResultData): Dat
     return result;
 }
 
-type AnalyzedTableRow = {
-    size: string;
-    concentration: string;
-    molarity: string;
-    peak: string;
-    area: string;
-};
-export type AnalyzedTable = {
-    header: AnalyzedTableRow;
-    rows: AnalyzedTableRow[];
+export type SimpleTableData = {
+    columnCount: number;
+    header?: string[];
+    rows: string[][];
 }
 
-export function prepareStandardAnalyzedTable(analyzeResult: AnalyzeResult): AnalyzedTable {
-    const rows: AnalyzedTableRow[] = [];
+
+export function prepareStandartTable(sizeStandard: SizeStandard): SimpleTableData {
+    const header: string[] = [
+        'Длина фрагментов, пн',
+        'Концентрация, нг/мкл',
+        'Время выхода, с',
+    ];
+    const rows: string[][] = [];
+    for (let i = 0; i < sizeStandard.sizes.length; i++) {
+        rows.push([
+            round(sizeStandard.sizes[i]).toString(),
+            round(sizeStandard.concentrations[i]).toString(),
+            round(sizeStandard.release_times[i]).toString(),
+        ]);
+    }
+    return {
+        columnCount: 3,
+        header,
+        rows,
+    }
+}
+
+
+export function prepareStandardAnalyzedTable(analyzeResult: AnalyzeResult): SimpleTableData {
+    const header: string[] = [
+        'Длина фрагментов, пн',
+        'Концентрация, нг/мкл',
+        'Молярность, нмоль/л',
+        'Время выхода, с',
+        'Площадь * 10⁷',
+    ];
+    const rows: string[][] = [];
     for (let i = 0; i < analyzeResult.sizes.length; i++) {
-        rows.push({
-            size: round(analyzeResult.sizes[i]).toString(),
-            concentration: round(analyzeResult.concentrations[i]).toString(),
-            molarity: round(analyzeResult.SD_molarity[i]).toString(),
-            peak: round(analyzeResult.peak[i]).toString(),
-            area: round(analyzeResult.led_area[i] * 1e-7).toString(),
-        });
+        rows.push([
+            round(analyzeResult.sizes[i]).toString(),
+            round(analyzeResult.concentrations[i]).toString(),
+            round(analyzeResult.SD_molarity[i]).toString(),
+            round(analyzeResult.peak[i]).toString(),
+            round(analyzeResult.led_area[i] * 1e-7).toString(),
+        ]);
     }
     return {
-        header: {
-            size: 'Длина фрагментов, пн',
-            concentration: 'Концентрация, нг/мкл',
-            molarity: 'Молярность, нмоль/л',
-            peak: 'Время выхода, с',
-            area: 'Площадь * 10⁷',
-        },
+        columnCount: 5,
+        header,
         rows,
     };
 }
 
-export function prepareGenLibAnalyzedTable(analyzeResultData: AnalyzeResultData): AnalyzedTable {
-    const rows: AnalyzedTableRow[] = [];
+export function prepareGenLibAnalyzedTable(analyzeResultData: AnalyzeResultData): SimpleTableData {
+    const header: string[] = [
+        'Длина фрагментов, пн',
+        'Концентрация, нг/мкл',
+        'Молярность, нмоль/л',
+        'Время выхода, с',
+        'Площадь * 10⁷',
+    ];
+    const rows: string[][] = [];
     for (let i = 0; i < analyzeResultData.peaksCorr.length; i++) {
-        rows.push({
-            size: round(analyzeResultData.peaksCorr[i]).toString(),
-            concentration: round(analyzeResultData.areaCorr[i]).toString(),
-            molarity: round(analyzeResultData.molarity[i]).toString(),
-            peak: round(analyzeResultData.library_peaks[i]).toString(),
-            area: round(analyzeResultData.GLAreas[i] * 1e-7).toString(),
-        });
+        rows.push([
+            round(analyzeResultData.peaksCorr[i]).toString(),
+            round(analyzeResultData.areaCorr[i]).toString(),
+            round(analyzeResultData.molarity[i]).toString(),
+            round(analyzeResultData.library_peaks[i]).toString(),
+            round(analyzeResultData.GLAreas[i] * 1e-7).toString(),
+        ]);
     }
     return {
-        header: {
-            size: 'Длина фрагментов, пн',
-            concentration: 'Концентрация, нг/мкл',
-            molarity: 'Молярность, нмоль/л',
-            peak: 'Время выхода, с',
-            area: 'Площадь * 10⁷',
-        },
+        columnCount: 5,
+        header,
         rows,
     };
 }
 
-export function prepareGenLibAnalyzedTotalTable(analyzeResultData: AnalyzeResultData): AnalyzedTable {
+export function prepareGenLibAnalyzedTotalTable(analyzeResultData: AnalyzeResultData): SimpleTableData {
     return {
-        header: {
-            size: 'Длина максимального фрагмента, пн',
-            concentration: 'Концентрация геномной библиотеки, нг/мкл',
-            molarity: 'Молярность геномной библиотеки, пмоль/л',
-            peak: 'Время выхода максимального фрагмента, с',
-            area: 'Площадь геномной библиотеки * 10⁷',
-        },
-        rows: [{
-            size: round(analyzeResultData.maxLibPeak).toString(),
-            concentration: round(analyzeResultData.totalLibConc).toString(),
-            molarity: round(analyzeResultData.totalLibMolarity).toString(),
-            peak: round(analyzeResultData.maxLibValue).toString(),
-            area: round(analyzeResultData.totalLibArea * 1e-7).toString(),
-        }],
+        columnCount: 5,
+        header: [
+            'Длина максимального фрагмента, пн',
+            'Концентрация геномной библиотеки, нг/мкл',
+            'Молярность геномной библиотеки, пмоль/л',
+            'Время выхода максимального фрагмента, с',
+            'Площадь геномной библиотеки * 10⁷',
+        ],
+        rows: [[
+            round(analyzeResultData.maxLibPeak).toString(),
+            round(analyzeResultData.totalLibConc).toString(),
+            round(analyzeResultData.totalLibMolarity).toString(),
+            round(analyzeResultData.maxLibValue).toString(),
+            round(analyzeResultData.totalLibArea * 1e-7).toString(),
+        ]],
     };
 }

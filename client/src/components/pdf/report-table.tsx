@@ -1,5 +1,5 @@
 import { StyleSheet, View, Text } from "@react-pdf/renderer";
-import { AnalyzedTable } from "../../chart-data/chart-data";
+import { SimpleTableData } from "../../chart-data/chart-data";
 
 
 const styles = StyleSheet.create({
@@ -16,13 +16,12 @@ const styles = StyleSheet.create({
         padding: 4,
         flexGrow: 1,
         textAlign: 'center',
-        width: '20%',
     },
 });
 
 
 type Props = {
-    tableData: AnalyzedTable;
+    tableData: SimpleTableData;
     style?: any;
 }
 
@@ -31,23 +30,22 @@ const ReportTable = ({
     tableData,
     style,
 }: Props) => {
+    const { columnCount, header, rows } = tableData;
+    const cellWidth = `${100 / columnCount}%`;
+
     return (
         <View style={style} wrap={false}>
             <View style={styles.table}>
-                <View style={styles.row}>
-                    <Text style={[styles.cell, styles.header]}>{tableData.header.size}</Text>
-                    <Text style={[styles.cell, styles.header]}>{tableData.header.concentration}</Text>
-                    <Text style={[styles.cell, styles.header]}>{tableData.header.molarity}</Text>
-                    <Text style={[styles.cell, styles.header]}>{tableData.header.peak}</Text>
-                    <Text style={[styles.cell, styles.header]}>{tableData.header.area}</Text>
-                </View>
-                {tableData.rows.map(row => (
-                    <View key={row.size} style={styles.row}>
-                        <Text style={styles.cell}>{row.size}</Text>
-                        <Text style={styles.cell}>{row.concentration}</Text>
-                        <Text style={styles.cell}>{row.molarity}</Text>
-                        <Text style={styles.cell}>{row.peak}</Text>
-                        <Text style={styles.cell}>{row.area}</Text>
+                {header && header.length > 0 && <View style={styles.row}>
+                    {header.map((cell, j) => (
+                        <Text key={j} style={[styles.cell, styles.header, { width: cellWidth }]}>{cell}</Text>
+                    ))}
+                </View>}
+                {rows.map((row, i) => (
+                    <View key={i} style={styles.row}>
+                        {row.map((cell, j) => (
+                            <Text key={j} style={[styles.cell, { width: cellWidth }]}>{cell}</Text>
+                        ))}
                     </View>
                 ))}
             </View>
