@@ -1,123 +1,145 @@
 import { DatasetWithAnnotations } from "../helpers/chart";
 import { round } from "../helpers/helpers";
-import { AnalyzeResult, AnalyzeResultData, GenLib, SizeStandard } from "../models/models";
+import { GenLibAnalyzeResult, GenLibParseResult, SizeStandardAnalyzeResult, SizeStandardParseResult } from "../models/models";
 
 
-export function prepareStadardData(sizeStandard: SizeStandard): DatasetWithAnnotations[] {
-    return [
-        {
-            title: sizeStandard.title,
-            type: 'line',
-            color: 'primary',
-            points: sizeStandard.data.map((y, x) => ({ x, y: y * 1e-6 })),
-        }
-    ];
-}
-
-
-export function prepareStadardAnalyzedData(analyzeResult: AnalyzeResult): DatasetWithAnnotations[] {
+export function prepareStadardData(sizeStandard: SizeStandardParseResult): DatasetWithAnnotations[] {
     return [
         {
             title: 'Интенсивность',
             type: 'line',
             color: 'primary',
-            points: analyzeResult.ZrRef.map((y, x) => ({ x, y: y * 1e-6 })),
+            points: sizeStandard.signal.map((y, x) => ({ x, y: y * 1e-6 })),
+        }
+    ];
+}
+
+export function prepareSizeStandards(sizeStandards: SizeStandardParseResult[]): DatasetWithAnnotations[] {
+    return sizeStandards.map(
+        sizeStandard => ({
+            title: sizeStandard.description.title,
+            type: 'line',
+            color: 'primary',
+            points: sizeStandard.signal.map((y, x) => ({ x, y: y * 1e-6 })),
+        })
+    );
+}
+
+
+export function prepareStadardAnalyzedData(sizeStandard: SizeStandardAnalyzeResult): DatasetWithAnnotations[] {
+    return [
+        {
+            title: 'Интенсивность',
+            type: 'line',
+            color: 'primary',
+            points: sizeStandard.ZrRef.map((y, x) => ({ x, y: y * 1e-6 })),
             showChromatogram: true,
         },
         {
             title: 'Пики',
             type: 'point',
             color: 'secondary',
-            points: analyzeResult.peak.map(x => ({ x, y: analyzeResult.ZrRef[x] * 1e-6 })),
+            points: sizeStandard.peaks.data.map(x => ({ x, y: sizeStandard.ZrRef[x] * 1e-6 })),
             showLines: true,
-            lineValues: analyzeResult.sizes,
+            lineValues: sizeStandard.peaks.sizes,
         },
     ];
 }
 
-export function prepareStandardAnalyzedCalibrationCurve(analyzeResult: AnalyzeResult): DatasetWithAnnotations[] {
+export function prepareStandardAnalyzedCalibrationCurve(sizeStandard: SizeStandardAnalyzeResult): DatasetWithAnnotations[] {
     return [
         {
             title: 'Исходные данные',
             type: 'point',
             color: 'primary',
-            points: analyzeResult.sizes.map((x, i) => ({ x, y: analyzeResult.peak[i] })),
+            points: sizeStandard.peaks.sizes.map((x, i) => ({ x, y: sizeStandard.peaks.data[i] })),
         },
         {
             title: 'Подгонка полинома',
             type: 'line',
             color: 'secondary',
-            points: analyzeResult.liz_fit.map((x, i) => ({ x, y: analyzeResult.locs_fit[i] })),
+            points: sizeStandard.liz_fit.map((x, i) => ({ x, y: sizeStandard.locs_fit[i] })),
         },
     ];
 }
 
-export function prepareGenLibs(genLibs: GenLib[]): DatasetWithAnnotations[] {
-    return genLibs.map(
-        genLib => ({
-            title: genLib.title,
+export function prepareGenLib(genLib: GenLibParseResult): DatasetWithAnnotations[] {
+    return [
+        {
+            title: 'Интенсивность',
             type: 'line',
             color: 'primary',
-            points: genLib.data.map((y, x) => ({ x, y: y * 1e-6 })),
+            points: genLib.signal.map((y, x) => ({ x, y: y * 1e-6 })),
+        }
+    ];
+}
+
+export function prepareGenLibs(genLibs: GenLibParseResult[]): DatasetWithAnnotations[] {
+    return genLibs.map(
+        genLib => ({
+            title: genLib.description.title,
+            type: 'line',
+            color: 'primary',
+            points: genLib.signal.map((y, x) => ({ x, y: y * 1e-6 })),
         })
     );
 }
 
-export function prepareGenLibAnalyzed(analyzeResultData: AnalyzeResultData): DatasetWithAnnotations[] {
+export function prepareGenLibAnalyzed(genLib: GenLibAnalyzeResult): DatasetWithAnnotations[] {
     const result: DatasetWithAnnotations[] = [{
         title: 'Интенсивность',
         type: 'line',
-        points: analyzeResultData.t_main.map((x, i) => ({ x, y: analyzeResultData.denoised_data[i] * 1e-6 })),
+        points: genLib.t_main.map((x, i) => ({ x, y: genLib.denoised_data[i] * 1e-6 })),
         showChromatogram: true,
         color: 'primary',
     }];
-    if (analyzeResultData.st_peaks.length > 0) {
+    if (genLib.st_peaks.length > 0) {
         result.push({
             title: 'Реперные пики',
             color: 'secondary',
             type: 'point',
             pointStyle: 'crossRot',
-            points: analyzeResultData.st_peaks.map((x, i) => ({ x, y: analyzeResultData.denoised_data[analyzeResultData.st_length[i]] * 1e-6 })),
+            points: genLib.st_peaks.map((x, i) => ({ x, y: genLib.denoised_data[genLib.st_length[i]] * 1e-6 })),
             showLines: true,
-            lineValues: analyzeResultData.stp,
+            lineValues: genLib.stp,
         });
     }
-    if (analyzeResultData.t_unrecognized_peaks.length > 0) {
+    if (genLib.t_unrecognized_peaks.length > 0) {
         result.push({
             title: 'Нераспознанные пики',
             color: 'secondary',
             type: 'point',
             pointStyle: 'cross',
-            points: analyzeResultData.t_unrecognized_peaks.map((x, i) => ({ x, y: analyzeResultData.denoised_data[analyzeResultData.unrecognized_peaks[i]] * 1e-6 })),
+            points: genLib.t_unrecognized_peaks.map((x, i) => ({ x, y: genLib.denoised_data[genLib.unrecognized_peaks[i]] * 1e-6 })),
             showLines: true,
-            lineValues: analyzeResultData.unr,
+            lineValues: genLib.unr,
         });
     }
-    if (analyzeResultData.lib_length.length > 0) {
+    if (genLib.lib_length.length > 0) {
         result.push({
             title: 'Библиотечные пики',
             color: 'secondary',
             type: 'point',
             pointStyle: 'circle',
-            points: analyzeResultData.lib_length.map((x, i) => ({ x, y: analyzeResultData.denoised_data[analyzeResultData.LibPeakLocations[i]] * 1e-6 })),
+            points: genLib.lib_length.map((x, i) => ({ x, y: genLib.denoised_data[genLib.LibPeakLocations[i]] * 1e-6 })),
             showLines: true,
-            lineValues: analyzeResultData.hpx,
+            lineValues: genLib.hpx,
         });
     }
-    if (analyzeResultData.x_fill.length > 0) {
+    if (genLib.x_fill.length > 0) {
         result.push({
             title: 'Заливка',
             color: 'secondary',
             type: 'filled',
-            points: analyzeResultData.x_fill.map((x, i) => ({ x, y: analyzeResultData.y_fill[i] * 1e-6 })),
+            points: genLib.x_fill.map((x, i) => ({ x, y: genLib.y_fill[i] * 1e-6 })),
         });
     }
-    if (analyzeResultData.x_Lib_fill.length > 0) {
+    if (genLib.x_Lib_fill.length > 0) {
         result.push({
             title: 'Заливка',
             color: 'secondary',
             type: 'filled',
-            points: analyzeResultData.x_Lib_fill.map((x, i) => ({ x, y: analyzeResultData.y_Lib_fill[i] * 1e-6 })),
+            points: genLib.x_Lib_fill.map((x, i) => ({ x, y: genLib.y_Lib_fill[i] * 1e-6 })),
         });
     }
     return result;
@@ -130,18 +152,18 @@ export type SimpleTableData = {
 }
 
 
-export function prepareStandartTable(sizeStandard: SizeStandard): SimpleTableData {
+export function prepareStandartTable(sizeStandard: SizeStandardParseResult): SimpleTableData {
     const header: string[] = [
         'Длина фрагментов, пн',
         'Концентрация, нг/мкл',
         'Время выхода, с',
     ];
     const rows: string[][] = [];
-    for (let i = 0; i < sizeStandard.sizes.length; i++) {
+    for (let i = 0; i < sizeStandard.calibration.sizes.length; i++) {
         rows.push([
-            round(sizeStandard.sizes[i]).toString(),
-            round(sizeStandard.concentrations[i]).toString(),
-            round(sizeStandard.release_times[i]).toString(),
+            round(sizeStandard.calibration.sizes[i]).toString(),
+            round(sizeStandard.calibration.concentrations[i]).toString(),
+            round(sizeStandard.calibration.release_times[i]).toString(),
         ]);
     }
     return {
@@ -152,7 +174,7 @@ export function prepareStandartTable(sizeStandard: SizeStandard): SimpleTableDat
 }
 
 
-export function prepareStandardAnalyzedTable(analyzeResult: AnalyzeResult): SimpleTableData {
+export function prepareStandardAnalyzedTable(sizeStandard: SizeStandardAnalyzeResult): SimpleTableData {
     const header: string[] = [
         'Длина фрагментов, пн',
         'Концентрация, нг/мкл',
@@ -161,13 +183,13 @@ export function prepareStandardAnalyzedTable(analyzeResult: AnalyzeResult): Simp
         'Площадь * 10⁷',
     ];
     const rows: string[][] = [];
-    for (let i = 0; i < analyzeResult.sizes.length; i++) {
+    for (let i = 0; i < sizeStandard.peaks.sizes.length; i++) {
         rows.push([
-            round(analyzeResult.sizes[i]).toString(),
-            round(analyzeResult.concentrations[i]).toString(),
-            round(analyzeResult.SD_molarity[i]).toString(),
-            round(analyzeResult.peak[i]).toString(),
-            round(analyzeResult.led_area[i] * 1e-7).toString(),
+            round(sizeStandard.peaks.sizes[i]).toString(),
+            round(sizeStandard.peaks.concentrations[i]).toString(),
+            round(sizeStandard.SD_molarity[i]).toString(),
+            round(sizeStandard.peaks.data[i]).toString(),
+            round(sizeStandard.led_area[i] * 1e-7).toString(),
         ]);
     }
     return {
@@ -177,7 +199,7 @@ export function prepareStandardAnalyzedTable(analyzeResult: AnalyzeResult): Simp
     };
 }
 
-export function prepareGenLibAnalyzedTable(analyzeResultData: AnalyzeResultData): SimpleTableData {
+export function prepareGenLibAnalyzedTable(genLib: GenLibAnalyzeResult): SimpleTableData {
     const header: string[] = [
         'Длина фрагментов, пн',
         'Концентрация, нг/мкл',
@@ -186,13 +208,13 @@ export function prepareGenLibAnalyzedTable(analyzeResultData: AnalyzeResultData)
         'Площадь * 10⁷',
     ];
     const rows: string[][] = [];
-    for (let i = 0; i < analyzeResultData.peaksCorr.length; i++) {
+    for (let i = 0; i < genLib.peaksCorr.length; i++) {
         rows.push([
-            round(analyzeResultData.peaksCorr[i]).toString(),
-            round(analyzeResultData.areaCorr[i]).toString(),
-            round(analyzeResultData.molarity[i]).toString(),
-            round(analyzeResultData.library_peaks[i]).toString(),
-            round(analyzeResultData.GLAreas[i] * 1e-7).toString(),
+            round(genLib.peaksCorr[i]).toString(),
+            round(genLib.areaCorr[i]).toString(),
+            round(genLib.molarity[i]).toString(),
+            round(genLib.library_peaks[i]).toString(),
+            round(genLib.GLAreas[i] * 1e-7).toString(),
         ]);
     }
     return {
@@ -202,7 +224,7 @@ export function prepareGenLibAnalyzedTable(analyzeResultData: AnalyzeResultData)
     };
 }
 
-export function prepareGenLibAnalyzedTotalTable(analyzeResultData: AnalyzeResultData): SimpleTableData {
+export function prepareGenLibAnalyzedTotalTable(genLib: GenLibAnalyzeResult): SimpleTableData {
     return {
         columnCount: 5,
         header: [
@@ -213,11 +235,11 @@ export function prepareGenLibAnalyzedTotalTable(analyzeResultData: AnalyzeResult
             'Площадь геномной библиотеки * 10⁷',
         ],
         rows: [[
-            round(analyzeResultData.maxLibPeak).toString(),
-            round(analyzeResultData.totalLibConc).toString(),
-            round(analyzeResultData.totalLibMolarity).toString(),
-            round(analyzeResultData.maxLibValue).toString(),
-            round(analyzeResultData.totalLibArea * 1e-7).toString(),
+            round(genLib.maxLibPeak).toString(),
+            round(genLib.totalLibConc).toString(),
+            round(genLib.totalLibMolarity).toString(),
+            round(genLib.maxLibValue).toString(),
+            round(genLib.totalLibArea * 1e-7).toString(),
         ]],
     };
 }

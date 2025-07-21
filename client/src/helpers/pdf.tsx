@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { saveAs } from 'file-saver';
-import { AnalyzeResult } from '../models/models';
+import { GenLibComplete, SizeStandardComplete } from '../models/client';
 
 import { Chart } from 'chart.js';
 import { CHART_LIGHT_THEME, createChartOptions, DatasetWithAnnotations, prepareDataAndAnnotations } from './chart';
-import { AnalyzedTable, prepareGenLibAnalyzed, prepareGenLibAnalyzedTable, prepareGenLibAnalyzedTotalTable, prepareStadardAnalyzedData, prepareStandardAnalyzedCalibrationCurve, prepareStandardAnalyzedTable } from '../chart-data/chart-data';
+import { prepareGenLibAnalyzed, prepareGenLibAnalyzedTable, prepareGenLibAnalyzedTotalTable, prepareStadardAnalyzedData, prepareStandardAnalyzedCalibrationCurve, prepareStandardAnalyzedTable, SimpleTableData } from '../chart-data/chart-data';
 import { getTimestampFilename } from './helpers';
 import { useAlert } from '../context/alert-context';
 
@@ -12,8 +12,16 @@ import { useAlert } from '../context/alert-context';
 export type GenLibPdf = {
   title: string;
   chartImage: string;
-  table: AnalyzedTable;
-  totalTable: AnalyzedTable;
+  table: SimpleTableData;
+  totalTable: SimpleTableData;
+}
+
+export type SizeStandardPdf = {
+  title: string;
+  chartImage: string;
+  curveChartImage: string;
+  table: SimpleTableData;
+  genLibs: GenLibPdf[];
 }
 
 async function renderChartToImage(datasets: DatasetWithAnnotations[], { yTitle }: { yTitle?: string } = {}): Promise<string> {
@@ -51,32 +59,53 @@ export function useOffscreenChartsToPdf() {
   const showAlert = useAlert();
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
-  const generatePdf = async (analyzeResult: AnalyzeResult) => {
+  const generatePdf = async (sizeStandards: SizeStandardComplete[], genLibs: GenLibComplete[], sizeStandardIndicies: number[], genLibIndices: number[]) => {
     if (isGeneratingPDF) return;
+    for (const sizeStandardInd of sizeStandardIndicies) {
+      if (sizeStandards[sizeStandardInd].analyzed?.state !== 'success') {
+        showAlert('Сначала завершите анализ выбранных стандартов длин.', 'warning');
+        return;
+      }
+      for (const genLibInd of genLibIndices) {
+        if (genLibs[genLibInd].analyzed.get(sizeStandardInd)?.state !== 'success') {
+          showAlert('Сначала завершите анализ выбранных геномных библиотек.', 'warning');
+          return;
+        }
+      }
+    }
     setIsGeneratingPDF(true);
     try {
       const { pdf } = await import('@react-pdf/renderer');
       const { default: ReportPdf } = await import('../components/pdf/report-pdf');
-      const standardChart = await renderChartToImage(prepareStadardAnalyzedData(analyzeResult));
-      const standardCalibrationCurve = await renderChartToImage(prepareStandardAnalyzedCalibrationCurve(analyzeResult));
-      const genLibCharts: GenLibPdf[] = await Promise.all(analyzeResult.genlib_data.map(async genLib => (
-        {
-          title: genLib.title,
-          chartImage: await renderChartToImage(prepareGenLibAnalyzed(genLib)),
-          table: prepareGenLibAnalyzedTable(genLib),
-          totalTable: prepareGenLibAnalyzedTotalTable(genLib),
+      const sizeStandardCharts: SizeStandardPdf[] = [];
+      for (const sizeStandardInd of sizeStandardIndicies) {
+        const sizeStandard = sizeStandards[sizeStandardInd];
+        if (sizeStandard.analyzed?.state !== 'success') return;
+        const genLibCharts: GenLibPdf[] = []
+        for (const genLibInd of genLibIndices) {
+          const genLib = genLibs[genLibInd];
+          const genLibAnalyzed = genLib.analyzed.get(sizeStandardInd);
+          if (genLibAnalyzed?.state !== 'success') return;
+          const chartImage = await renderChartToImage(prepareGenLibAnalyzed(genLibAnalyzed));
+          genLibCharts.push({
+            title: genLib.parsed.description.title,
+            chartImage,
+            table: prepareGenLibAnalyzedTable(genLibAnalyzed),
+            totalTable: prepareGenLibAnalyzedTotalTable(genLibAnalyzed),
+          });
         }
-      )));
-
+        sizeStandardCharts.push({
+          title: sizeStandard.parsed.description.title,
+          chartImage: await renderChartToImage(prepareStadardAnalyzedData(sizeStandard.analyzed)),
+          curveChartImage: await renderChartToImage(prepareStandardAnalyzedCalibrationCurve(sizeStandard.analyzed)),
+          table: prepareStandardAnalyzedTable(sizeStandard.analyzed),
+          genLibs: genLibCharts,
+        });
+      }
       const now = new Date();
-
       const blob = await pdf(<ReportPdf
         reportDate={now}
-        standardTitle={analyzeResult.title}
-        standardChart={standardChart}
-        standardCalibrationCurveChart={standardCalibrationCurve}
-        standardTable={prepareStandardAnalyzedTable(analyzeResult)}
-        genLibs={genLibCharts}
+        sizeStandards={sizeStandardCharts}
       />).toBlob();
       saveAs(blob, getTimestampFilename(now));
     } catch (err) {

@@ -1,12 +1,12 @@
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 
-from models.models import SizeStandard, GenLib
+from models.models import GenLibDescription, GenLibParseResult, SizeStandardCalibration, SizeStandardDescription, SizeStandardParseResult
 
 
-def parse_file(content: bytes, filename: str) -> tuple[list[SizeStandard], list[GenLib]]:
-    size_standards: list[SizeStandard] = []
-    gen_libs: list[GenLib] = []
+def parse_file(content: bytes, filename: str) -> tuple[list[SizeStandardParseResult], list[GenLibParseResult]]:
+    size_standards: list[SizeStandardParseResult] = []
+    gen_libs: list[GenLibParseResult] = []
     try:
         root = ElementTree.fromstring(content)
         raw_title: str = root.findtext('Title') or 'Unknown'
@@ -26,19 +26,28 @@ def parse_file(content: bytes, filename: str) -> tuple[list[SizeStandard], list[
                     time_parts = release_time_str.split(':')
                     release_times.append(int(time_parts[0]) * 3600 + int(time_parts[1]) * 60 + int(time_parts[2]))
 
-                size_standards.append(SizeStandard(
-                    title=raw_title,
-                    filename=filename,
-                    data=extract_filtered_int_values(root.findall('./Data/Point')),
+                raw_signal = extract_filtered_int_values(root.findall('./Data/Point'))
+                calibration = SizeStandardCalibration(
                     sizes=sizes,
                     concentrations=concentrations,
                     release_times=release_times,
+                )
+                size_standards.append(SizeStandardParseResult(
+                    description=SizeStandardDescription(
+                        title=raw_title,
+                        filename=filename,
+                    ),
+                    signal=raw_signal,
+                    calibration=calibration,
                 ))
         elif type_value == 'Sample':
-            gen_libs.append(GenLib(
-                title='GenLib_' + raw_title,
-                filename=filename,
-                data=extract_filtered_int_values(root.findall('./Data/Point')),
+            raw_signal = extract_filtered_int_values(root.findall('./Data/Point'))
+            gen_libs.append(GenLibParseResult(
+                description=GenLibDescription(
+                    title='GenLib_' + raw_title,
+                    filename=filename,
+                ),
+                signal=raw_signal,
             ))
     except Exception as ex:
         print(ex)

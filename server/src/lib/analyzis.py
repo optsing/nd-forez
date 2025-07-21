@@ -3,66 +3,83 @@ import numpy as np
 from lib.sdfind.sdfind import sdfind
 from lib.glfind.glfind import glfind
 
-from models.models import SizeStandard, GenLib, AnalyzeResult, AnalyzeResultData
+from models.models import GenLibAnalyzeError, SizeStandardAnalyzePeaks, SizeStandardAnalyzeError, SizeStandardCalibration, SizeStandardRawSignal, GenLibRawSignal, SizeStandardAnalyzeResult, GenLibAnalyzeResult
 
 
-def analyze(size_standard: SizeStandard, gen_libs: list[GenLib]) -> AnalyzeResult:
-    standard_sizes = np.array(size_standard.sizes, dtype=np.float64)
-    standard_conc = np.array(size_standard.concentrations, dtype=np.float64)
-    sdfind_result = sdfind(
-        np.array(size_standard.data, dtype=np.float64),
-        standard_sizes,
-        np.array(size_standard.release_times, dtype=np.float64),
-        standard_conc
+def analyze_size_standard(raw_signal: SizeStandardRawSignal, calibration: SizeStandardCalibration) -> SizeStandardAnalyzeResult | SizeStandardAnalyzeError:
+    try:
+        result = sdfind(
+            np.array(raw_signal, dtype=np.float64),
+            np.array(calibration.sizes, dtype=np.float64),
+            np.array(calibration.release_times, dtype=np.float64),
+            np.array(calibration.concentrations, dtype=np.float64),
+        )
+    except Exception as ex:
+        return SizeStandardAnalyzeError(
+            state='error',
+            message=str(ex),
+        )
+
+    return SizeStandardAnalyzeResult(
+        state='success',
+        peaks=SizeStandardAnalyzePeaks(
+            data=result.peaks.tolist(),
+            sizes=calibration.sizes,
+            concentrations=calibration.concentrations,
+        ),
+        led_area=result.peak_areas.tolist(),
+        led_conc=result.concentrations.tolist(),
+        ZrRef=result.corrected_signal.tolist(),
+        SD_molarity=result.molarity.tolist(),
+        liz_fit=result.size_fit.tolist(),
+        locs_fit=result.peak_fit.tolist(),
     )
 
-    results: list[AnalyzeResultData] = []
-    for gl_d in gen_libs:
-        glfind_result = glfind(np.array(gl_d.data, dtype=np.float64), sdfind_result.peaks, standard_sizes, standard_conc)
-        results.append(AnalyzeResultData(
-            title=gl_d.title,
-            t_main=glfind_result.t_main.tolist(),
-            denoised_data=glfind_result.corrected_data.tolist(),
-            st_peaks=glfind_result.st_peaks.tolist(),
-            st_length=glfind_result.st_length.tolist(),
-            t_unrecognized_peaks=glfind_result.t_unrecognized_peaks.tolist(),
-            unrecognized_peaks=glfind_result.unrecognized_peaks.tolist(),
-            lib_length=glfind_result.lib_length.tolist(),
-            LibPeakLocations=glfind_result.lib_peak_locations.tolist(),
-            t_final_locations=glfind_result.t_final_locations.tolist(),
-            final_filtered_below_threshold_locations=glfind_result.final_lib_local_minimums.tolist(),
-            hpx=glfind_result.hpx.tolist(),
-            unr=glfind_result.unr.tolist(),
-            stp=glfind_result.stp.tolist(),
-            mainCorr=glfind_result.main_corr.tolist(),
 
-            GLAreas=glfind_result.all_areas.tolist(),
-            peaksCorr=glfind_result.all_peaks_corr.tolist(),
-            library_peaks=glfind_result.all_peaks.tolist(),
-            areaCorr=glfind_result.all_areas_conc.tolist(),
-            molarity=glfind_result.molarity.tolist(),
+def analyze_gen_lib(raw_signal: GenLibRawSignal, size_standard_analyze_peaks: SizeStandardAnalyzePeaks) -> GenLibAnalyzeResult | GenLibAnalyzeError:
+    try:
+        res = glfind(
+            np.array(raw_signal, dtype=np.float64),
+            np.array(size_standard_analyze_peaks.data, dtype=np.int64),
+            np.array(size_standard_analyze_peaks.sizes, dtype=np.float64),
+            np.array(size_standard_analyze_peaks.concentrations, dtype=np.float64),
+        )
+    except Exception as ex:
+        return GenLibAnalyzeError(
+            state='error',
+            message=str(ex),
+        )
+    return GenLibAnalyzeResult(
+        state='success',
+        t_main=res.t_main.tolist(),
+        denoised_data=res.corrected_data.tolist(),
+        st_peaks=res.st_peaks.tolist(),
+        st_length=res.st_length.tolist(),
+        t_unrecognized_peaks=res.t_unrecognized_peaks.tolist(),
+        unrecognized_peaks=res.unrecognized_peaks.tolist(),
+        lib_length=res.lib_length.tolist(),
+        LibPeakLocations=res.lib_peak_locations.tolist(),
+        t_final_locations=res.t_final_locations.tolist(),
+        final_filtered_below_threshold_locations=res.final_lib_local_minimums.tolist(),
+        hpx=res.hpx.tolist(),
+        unr=res.unr.tolist(),
+        stp=res.stp.tolist(),
+        mainCorr=res.main_corr.tolist(),
 
-            maxLibPeak=float(glfind_result.max_lib_peak),
-            maxLibValue=float(glfind_result.max_lib_value),
-            totalLibArea=float(glfind_result.total_lib_area),
-            totalLibConc=float(glfind_result.total_lib_conc),
-            totalLibMolarity=float(glfind_result.total_lib_molarity),
+        GLAreas=res.all_areas.tolist(),
+        peaksCorr=res.all_peaks_corr.tolist(),
+        library_peaks=res.all_peaks.tolist(),
+        areaCorr=res.all_areas_conc.tolist(),
+        molarity=res.molarity.tolist(),
 
-            x_fill=glfind_result.x_fill.tolist(),
-            y_fill=glfind_result.y_fill.tolist(),
-            x_Lib_fill=glfind_result.x_lib_fill.tolist(),
-            y_Lib_fill=glfind_result.y_lib_fill.tolist(),
-        ))
-    return AnalyzeResult(
-        title=size_standard.title,
-        peak=sdfind_result.peaks.tolist(),
-        led_area=sdfind_result.peak_areas.tolist(),
-        led_conc=sdfind_result.concentrations.tolist(),
-        ZrRef=sdfind_result.corrected_signal.tolist(),
-        SD_molarity=sdfind_result.molarity.tolist(),
-        liz_fit=sdfind_result.size_fit.tolist(),
-        locs_fit=sdfind_result.peak_fit.tolist(),
-        sizes=size_standard.sizes,
-        concentrations=size_standard.concentrations,
-        genlib_data=results,
+        maxLibPeak=float(res.max_lib_peak),
+        maxLibValue=float(res.max_lib_value),
+        totalLibArea=float(res.total_lib_area),
+        totalLibConc=float(res.total_lib_conc),
+        totalLibMolarity=float(res.total_lib_molarity),
+
+        x_fill=res.x_fill.tolist(),
+        y_fill=res.y_fill.tolist(),
+        x_Lib_fill=res.x_lib_fill.tolist(),
+        y_Lib_fill=res.y_lib_fill.tolist(),
     )

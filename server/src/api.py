@@ -2,19 +2,19 @@ from fastapi import FastAPI, File, HTTPException, UploadFile, Depends
 from sqlmodel import Session, desc, select
 
 from database import get_session
-from lib.analyzis import analyze
+from lib.analyzis import analyze_size_standard, analyze_gen_lib
 from lib.parsing import parse_file
-from models.models import AnalyzeInput, AnalyzeResult, GenLib, GenLibDescription, ParseResult, ParseResultDescription, SizeStandard, SizeStandardDescription
+from models.models import GenLibAnalyzeError, GenLibAnalyzeResult, GenLibParseResult, GenLibDescription, GenLibsAnalyzeInput, GenLibsAnalyzeOutput, ParseResult, ParseResultDescription, SizeStandardAnalyzeError, SizeStandardAnalyzeInput, SizeStandardAnalyzeOutput, SizeStandardAnalyzeResult, SizeStandardCalibration, SizeStandardParseResult, SizeStandardDescription
 from models.database import GenLibDB, ParseResultDB, SizeStandardDB
 
 
 apiRoute = FastAPI(title='ND Forez API')
 
 
-@apiRoute.post("/parse")
+@apiRoute.post("/parse-files")
 async def do_parse(files: list[UploadFile] = File(...), session: Session = Depends(get_session)) -> ParseResult:
-    standards: list[SizeStandard] = []
-    genlibs: list[GenLib] = []
+    standards: list[SizeStandardParseResult] = []
+    genlibs: list[GenLibParseResult] = []
 
     for file in files:
         content = await file.read()
@@ -30,18 +30,18 @@ async def do_parse(files: list[UploadFile] = File(...), session: Session = Depen
     genlibs_db: list[GenLibDB] = []
     for s in standards:
         standards_db.append(SizeStandardDB(
-            title=s.title,
-            filename=s.filename,
-            data=s.data,
-            sizes=s.sizes,
-            concentrations=s.concentrations,
-            release_times=s.release_times
+            title=s.description.title,
+            filename=s.description.filename,
+            data=s.signal,
+            sizes=s.calibration.sizes,
+            concentrations=s.calibration.concentrations,
+            release_times=s.calibration.release_times
         ))
     for g in genlibs:
         genlibs_db.append(GenLibDB(
-            title=g.title,
-            filename=g.filename,
-            data=g.data,
+            title=g.description.title,
+            filename=g.description.filename,
+            data=g.signal,
         ))
 
     parse_result_db = ParseResultDB(
@@ -59,12 +59,24 @@ async def do_parse(files: list[UploadFile] = File(...), session: Session = Depen
     )
 
 
-@apiRoute.post('/analyze')
-def do_analyze(data: AnalyzeInput) -> AnalyzeResult:
-    try:
-        return analyze(data.size_standard, data.gen_libs)
-    except Exception as ex:
-        raise HTTPException(status_code=422, detail=str(ex))
+@apiRoute.post('/analyze-size-standards')
+def do_analyze_size_standard(input: SizeStandardAnalyzeInput) -> SizeStandardAnalyzeOutput:
+    result: list[SizeStandardAnalyzeResult | SizeStandardAnalyzeError] = []
+    for size_standard in input.items:
+        result.append(analyze_size_standard(size_standard.raw_signal, size_standard.calibration))
+    return SizeStandardAnalyzeOutput(
+        data=result,
+    )
+
+
+@apiRoute.post('/analyze-gen-libs')
+def do_analyze_gen_lib(input: GenLibsAnalyzeInput) -> GenLibsAnalyzeOutput:
+    result: list[GenLibAnalyzeResult | GenLibAnalyzeError] = []
+    for raw_signal in input.raw_signals:
+        result.append(analyze_gen_lib(raw_signal, input.size_standard_analyze_peaks))
+    return GenLibsAnalyzeOutput(
+        data=result,
+    )
 
 
 @apiRoute.get('/parse-results')
@@ -76,19 +88,14 @@ def get_parse_results(session: Session = Depends(get_session)) -> list[ParseResu
         standards: list[SizeStandardDescription] = []
         genlibs: list[GenLibDescription] = []
         for s in r.standards:
-            standards.append(SizeStandard(
+            standards.append(SizeStandardDescription(
                 title=s.title,
                 filename=s.filename,
-                data=s.data,
-                sizes=s.sizes,
-                concentrations=s.concentrations,
-                release_times=s.release_times,
             ))
         for g in r.genlibs:
-            genlibs.append(GenLib(
+            genlibs.append(GenLibDescription(
                 title=g.title,
                 filename=g.filename,
-                data=g.data,
             ))
         parsed_datas.append(ParseResultDescription(
             id=r.id or 0,
@@ -104,22 +111,30 @@ def get_parse_result(result_id: int, session: Session = Depends(get_session)) ->
     r = session.get(ParseResultDB, result_id)
     if r is None:
         raise HTTPException(404)
-    standards: list[SizeStandard] = []
-    genlibs: list[GenLib] = []
+    standards: list[SizeStandardParseResult] = []
+    genlibs: list[GenLibParseResult] = []
     for s in r.standards:
-        standards.append(SizeStandard(
-            title=s.title,
-            filename=s.filename,
-            data=s.data,
+        raw_signal = s.data
+        calibration = SizeStandardCalibration(
             sizes=s.sizes,
             concentrations=s.concentrations,
             release_times=s.release_times,
+        )
+        standards.append(SizeStandardParseResult(
+            description=SizeStandardDescription(
+                title=s.title,
+                filename=s.filename,
+            ),
+            signal=raw_signal,
+            calibration=calibration,
         ))
     for g in r.genlibs:
-        genlibs.append(GenLib(
-            title=g.title,
-            filename=g.filename,
-            data=g.data,
+        genlibs.append(GenLibParseResult(
+            description=GenLibDescription(
+                title=g.title,
+                filename=g.filename,
+            ),
+            signal=g.data,
         ))
     if not standards and not genlibs:
         raise HTTPException(status_code=422, detail='В файлах отсутствуют данные')
