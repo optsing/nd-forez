@@ -61,6 +61,12 @@ export function useOffscreenChartsToPdf() {
 
   const generatePdf = async (sizeStandards: SizeStandardComplete[], genLibs: GenLibComplete[], sizeStandardIndicies: number[], genLibIndices: number[]) => {
     if (isGeneratingPDF) return;
+
+    if (sizeStandardIndicies.length === 0) {
+      showAlert('Выберите стандарты длин для отчета.', 'warning');
+      return;
+    }
+
     for (const sizeStandardInd of sizeStandardIndicies) {
       if (sizeStandards[sizeStandardInd].analyzed?.state !== 'success') {
         showAlert('Сначала завершите анализ выбранных стандартов длин.', 'warning');

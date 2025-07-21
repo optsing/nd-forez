@@ -211,7 +211,7 @@ const FileUploadPage: React.FC = () => {
                     genLibResult.get(genLibInd)!.set(sizeStandardInd, genLibOutput[i].data[j]);
                 }
             }
-            
+
             setGenLibs(genLibs.map((genLib, i) => (
                 genLibResult.has(i)
                     ? {
@@ -250,88 +250,79 @@ const FileUploadPage: React.FC = () => {
     }
 
     return (
-        <>
-            <>
+        <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            marginX: {
+                xs: 1,
+                sm: 3,
+                md: 6,
+            },
+            mb: 12,
+            gap: 3,
+        }}>
+            <div>
                 <Typography variant="h5" textAlign='center' gutterBottom sx={{ mt: 3 }}>
                     Стандарты длин
                 </Typography>
-                <Box sx={{
-                    marginX: {
-                        xs: 1,
-                        sm: 3,
-                        md: 6,
-                    },
-                    mb: 3,
-                }}>
-                    <StandardChartContainer
-                        sizeStandards={sizeStandards}
-                        selected={selectedSizeStandard}
-                        setSelected={setSelectedSizeStandard}
-                        selectedMulti={selectedSizeStandards}
-                        setSelectedMulti={setSelectedSizeStandards}
-                        selectedTab={selectedSizeStandardTab}
-                        setSelectedTab={setSelectedSizeStandardTab}
-                        chartHeight={chartHeight}
-                        isCompactMode
-                        toolbar={
-                            <Button
-                                onClick={() => handleSizeStandardAnalyzeClick(selectedSizeStandard)}
-                                variant='outlined'
-                                color='secondary'
-                                sx={{ ml: 'auto', flexShrink: 0 }}
-                            >
-                                {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
-                                Анализ
-                            </Button>
-                        }
-                    />
-                </Box>
-            </>
-            <>
+                <StandardChartContainer
+                    sizeStandards={sizeStandards}
+                    selected={selectedSizeStandard}
+                    setSelected={setSelectedSizeStandard}
+                    selectedMulti={selectedSizeStandards}
+                    setSelectedMulti={setSelectedSizeStandards}
+                    selectedTab={selectedSizeStandardTab}
+                    setSelectedTab={setSelectedSizeStandardTab}
+                    chartHeight={chartHeight}
+                    isCompactMode
+                    toolbar={
+                        selectedSizeStandard >= 0 && <Button
+                            onClick={() => handleSizeStandardAnalyzeClick(selectedSizeStandard)}
+                            variant='outlined'
+                            color='secondary'
+                            sx={{ ml: 'auto', flexShrink: 0 }}
+                        >
+                            {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
+                            Анализ
+                        </Button>
+                    }
+                />
+            </div>
+
+            <div>
                 <Typography variant="h5" textAlign='center' gutterBottom>
                     Геномные библиотеки
                 </Typography>
-                <Box sx={{
-                    marginX: {
-                        xs: 1,
-                        sm: 3,
-                        md: 6,
-                    },
-                    mb: 3,
-                }}>
-                    <GenLibChartContainer
-                        sizeStandards={sizeStandards}
-                        genLibs={genLibs}
-                        selected={selectedGenLib}
-                        setSelected={setSelectedGenLib}
-                        selectedMulti={selectedGenLibs}
-                        setSelectedMulti={setSelectedGenLibs}
-                        selectedTab={selectedGenLibTab}
-                        setSelectedTab={setSelectedGenLibTab}
-                        chartHeight={chartHeight}
-                        toolbar={
-                            selectedGenLib >= 0 && <Button
-                                onClick={() => handleAnalyzeGenLibClick(selectedSizeStandards, selectedGenLib)}
-                                variant='outlined'
-                                color='secondary'
-                            >
-                                {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
-                                Анализ
-                            </Button>
-                        }
-                    />
-                </Box>
-            </>
+                <GenLibChartContainer
+                    sizeStandards={sizeStandards}
+                    genLibs={genLibs}
+                    selected={selectedGenLib}
+                    setSelected={setSelectedGenLib}
+                    selectedMulti={selectedGenLibs}
+                    setSelectedMulti={setSelectedGenLibs}
+                    selectedTab={selectedGenLibTab}
+                    setSelectedTab={setSelectedGenLibTab}
+                    chartHeight={chartHeight}
+                    toolbar={
+                        selectedGenLib >= 0 && <Button
+                            onClick={() => handleAnalyzeGenLibClick(selectedSizeStandards, selectedGenLib)}
+                            variant='outlined'
+                            color='secondary'
+                        >
+                            {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
+                            Анализ
+                        </Button>
+                    }
+                />
+            </div>
 
-            <Box
-                display='flex'
-                gap={1}
-                sx={{
-                    position: 'absolute',
-                    right: '2em',
-                    bottom: '2em',
-                }}
-            >
+            <Box sx={{
+                display: 'flex',
+                position: 'absolute',
+                right: '2em',
+                bottom: '2em',
+                gap: 1,
+            }}>
                 <Fab
                     variant='extended'
                     color='default'
@@ -358,7 +349,7 @@ const FileUploadPage: React.FC = () => {
                     Отчет
                 </Fab>
             </Box>
-        </>
+        </Box>
     );
 };
 
