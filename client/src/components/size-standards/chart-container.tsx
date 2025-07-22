@@ -1,22 +1,16 @@
-import { ChangeEvent, ReactNode, useMemo, useState } from 'react';
+import { ReactNode, useMemo } from 'react';
 import {
     Box,
     Tabs,
     Tab,
-    List,
-    ListItemButton,
-    ListItem,
-    Checkbox,
-    ListSubheader,
 } from '@mui/material';
 import ChartContainer from '../chart-container';
 import SizeStandardRawChart from './raw-chart';
 import SizeStandardAnalyzedChart from './analyzed-chart';
 import SizeStandardAnalyzedCurveChart from './analyzed-curve-chart';
 import { SizeStandardComplete } from '../../models/client';
-import TitleAnalyzeState from '../title-analyze-state';
-import { SsidChartTwoTone } from '@mui/icons-material';
 import SizeStandardSummaryChart from './summary-chart';
+import SizeStandardSidebar from './sidebar';
 
 
 type ToolbarProps = {
@@ -54,61 +48,17 @@ const StandardChartContainer: React.FC<Props> = ({
             .map(item => item.parsed);
     }, [sizeStandards, selectedMulti])
 
-    const handleSelectAll = (e: ChangeEvent<HTMLInputElement>) => {
-        const checked = e.target.checked;
-        setSelectedMulti(new Array(sizeStandards.length).fill(checked));
-    };
-
-    const handleSelect = (index: number) => {
-        setSelectedMulti(selectedMulti.map((val, i) => i === index ? !val : val));
-    };
-
     return (
         <ChartContainer
             title={selected >= 0 ? sizeStandards[selected].parsed.description.title : 'Сводный график'}
             toolbar={toolbar({ selected })}
-            sidebar={isCompactMode && <List>
-                <ListItem
-                    disablePadding
-                    secondaryAction={
-                        <Checkbox
-                            checked={selectedMulti.length > 0 && selectedMulti.every(item => item)}
-                            onChange={handleSelectAll}
-                        />
-                    }
-                >
-                    <ListItemButton
-                        selected={selected === -1}
-                        onClick={() => setSelected(-1)}
-                    >
-                        <SsidChartTwoTone sx={{ mr: 1 }} />
-                        Все стандарты
-                    </ListItemButton>
-                </ListItem>
-                {sizeStandards.map((sizeStandard, i) => (
-                    <ListItem
-                        key={i}
-                        disablePadding
-                        secondaryAction={
-                            <Checkbox
-                                checked={selectedMulti[i]}
-                                onChange={() => handleSelect(i)}
-                            />
-                        }
-                    >
-                        <ListItemButton
-                            selected={i === selected}
-                            onClick={() => setSelected(i)}
-                        >
-                            <TitleAnalyzeState
-                                title={sizeStandard.parsed.description.title}
-                                state={sizeStandard.analyzed}
-                                messageSuccess='Анализ был успешно проведен'
-                            />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
-            </List>}
+            sidebar={isCompactMode && <SizeStandardSidebar
+                sizeStandards={sizeStandards}
+                selected={selected}
+                setSelected={setSelected}
+                selectedMulti={selectedMulti}
+                setSelectedMulti={setSelectedMulti}
+            />}
             hideSideBar={!isCompactMode}
         >
             {selected >= 0 && <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -143,7 +93,7 @@ const StandardChartContainer: React.FC<Props> = ({
                     chartHeight={chartHeight}
                 />
             }
-            {selected >= 0 &&selectedTab === 1 &&
+            {selected >= 0 && selectedTab === 1 &&
                 <SizeStandardAnalyzedChart
                     sizeStandard={sizeStandards[selected].analyzed}
                     chartHeight={chartHeight}

@@ -45,7 +45,7 @@ const ChartContainer: React.FC<PropsWithChildren<Props>> = ({
                 </div>
             </div>}
             <Paper
-                sx={{
+                style={{
                     flexShrink: 1,
                     flexGrow: 1,
                     minWidth: 0,
