@@ -63,18 +63,18 @@ export function useOffscreenChartsToPdf() {
     if (isGeneratingPDF) return;
 
     if (sizeStandardIndicies.length === 0) {
-      showAlert('Выберите стандарты длин для отчета.', 'warning');
+      showAlert('Выберите стандарты длин для отчета', 'warning');
       return;
     }
 
     for (const sizeStandardInd of sizeStandardIndicies) {
       if (sizeStandards[sizeStandardInd].analyzed?.state !== 'success') {
-        showAlert('Сначала завершите анализ выбранных стандартов длин.', 'warning');
+        showAlert('Сначала завершите анализ выбранных стандартов длин', 'warning');
         return;
       }
       for (const genLibInd of genLibIndices) {
         if (genLibs[genLibInd].analyzed.get(sizeStandardInd)?.state !== 'success') {
-          showAlert('Сначала завершите анализ выбранных геномных библиотек.', 'warning');
+          showAlert('Сначала завершите анализ выбранных геномных библиотек', 'warning');
           return;
         }
       }

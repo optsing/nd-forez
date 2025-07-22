@@ -1,8 +1,8 @@
-import { createContext, Dispatch, ReactNode, SetStateAction, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 type AppSettingsContextType = {
     localCalculations: boolean;
-    setLocalCalculations: Dispatch<SetStateAction<boolean>>;
+    setLocalCalculations: (localCalculations: boolean) => void;
 }
 
 const AppSettingsContext = createContext<AppSettingsContextType | null>(null);

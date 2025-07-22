@@ -15,7 +15,7 @@ const TitleAnalyzeState: React.FC<Props> = ({
 }) => {
     return (
         <div style={{ display: 'flex', alignItems: 'center' }}>
-            {!state && <Tooltip title='Анализ не был проведен.'>
+            {!state && <Tooltip title='Анализ не был проведен'>
                 <HelpTwoTone sx={{ mr: 1 }} color='info' />
             </Tooltip>}
             {state?.state === 'success' && <Tooltip title={messageSuccess}>

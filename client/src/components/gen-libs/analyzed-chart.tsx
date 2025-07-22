@@ -15,7 +15,7 @@ const GenLibAnalyzedChart: React.FC<Props> = ({
 }) => {
     if (genLib?.state != 'success') {
         return (
-            <Box p={2} height='480px' display='flex' alignItems='center' justifyContent='center'>
+            <Box p={2} height={`${chartHeight + 32}px`} display='flex' alignItems='center' justifyContent='center'>
                 <Typography variant='h5' textAlign='center'>{genLib?.message ?? 'Анализ геномной библиотеки не был проведен'}</Typography>
             </Box>
         );

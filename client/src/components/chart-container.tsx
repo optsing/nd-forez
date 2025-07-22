@@ -1,7 +1,8 @@
 import { Box, Paper, Typography, useMediaQuery, useTheme } from "@mui/material";
 import { PropsWithChildren, ReactNode } from "react";
 
-interface Props {
+
+type Props = {
     title: string;
     toolbar: ReactNode;
     sidebar: ReactNode;
@@ -37,7 +38,7 @@ const ChartContainer: React.FC<PropsWithChildren<Props>> = ({
                     maxHeight: isSmallScreen ? '256px' : 'none',
                     overflowY: 'auto',
                     inset: 0,
-                    right: '12px',
+                    marginRight: isSmallScreen ? 0 : '12px',
                     marginBottom: isSmallScreen ? '12px' : 0,
                 }}>
                     {sidebar}
@@ -51,8 +52,8 @@ const ChartContainer: React.FC<PropsWithChildren<Props>> = ({
                     width: '100%',
                 }}
             >
-                <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', p: 1, gap: 1 }}>
-                    <Typography variant="h6" sx={{ mx: 2 }}>{title}</Typography>
+                <Box sx={{ borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', p: 1, gap: 1, width: '100%', height: '56px' }}>
+                    <Typography variant='h6' sx={{ ml: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</Typography>
                     <div style={{ marginLeft: 'auto' }}>{toolbar}</div>
                 </Box>
                 {children}

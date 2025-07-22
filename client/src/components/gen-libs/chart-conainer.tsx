@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo, ReactNode } from 'react';
+import { ChangeEvent, useMemo, ReactNode, useState } from 'react';
 import {
     Checkbox,
     Box,
@@ -7,6 +7,7 @@ import {
     ListItem,
     Tabs,
     Tab,
+    ListSubheader,
 } from '@mui/material';
 import ChartContainer from '../chart-container';
 import TitleAnalyzeState from '../title-analyze-state';
@@ -17,31 +18,30 @@ import { AnalyzeState, GenLibComplete, SizeStandardComplete } from '../../models
 import { SsidChartTwoTone } from '@mui/icons-material';
 
 
-interface Props {
+type ToolbarProps = {
+    selected: number;
+}
+
+type Props = {
     sizeStandards: SizeStandardComplete[];
     genLibs: GenLibComplete[];
-    selected: number;
-    setSelected: (index: number) => void;
     selectedMulti: boolean[];
     setSelectedMulti: (selectedMulti: boolean[]) => void;
-    selectedTab: number;
-    setSelectedTab: (index: number) => void;
     chartHeight: number;
-    toolbar?: ReactNode;
+    toolbar: (props: ToolbarProps) => ReactNode;
 }
 
 const GenLibChartContainer: React.FC<Props> = ({
     sizeStandards,
     genLibs,
-    selected,
-    setSelected,
     selectedMulti,
     setSelectedMulti,
-    selectedTab,
-    setSelectedTab,
     chartHeight,
     toolbar,
 }) => {
+    const [selected, setSelected] = useState<number>(-1);
+    const [selectedTab, setSelectedTab] = useState<number>(-1);
+
     const selectedGenLibs = useMemo(() => {
         return genLibs
             .filter((_, i) => selectedMulti[i])
@@ -63,7 +63,7 @@ const GenLibChartContainer: React.FC<Props> = ({
             if (s?.state === 'error') {
                 return {
                     state: 'error',
-                    message: 'Есть ошибки в выполненных анализах.',
+                    message: 'Есть ошибки в выполненных анализах',
                 }
             } else if (s?.state === 'success') {
                 hasSuccess = true;
@@ -79,10 +79,11 @@ const GenLibChartContainer: React.FC<Props> = ({
 
     return (
         <ChartContainer
-            title={selected >= 0 ? `Геномная библиотека: ${genLibs[selected].parsed.description.title}` : 'Сводный график'}
-            toolbar={toolbar}
+            title={selected >= 0 ? genLibs[selected].parsed.description.title : 'Сводный график'}
+            toolbar={toolbar({ selected })}
             sidebar={
                 <List>
+                    <ListSubheader>Геномные библиотеки</ListSubheader>
                     <ListItem
                         disablePadding
                         secondaryAction={
@@ -118,7 +119,7 @@ const GenLibChartContainer: React.FC<Props> = ({
                                 <TitleAnalyzeState
                                     title={g.parsed.description.title}
                                     state={genLibAnalyzeState(g)}
-                                    messageSuccess='Есть успешно выполненные анализы.'
+                                    messageSuccess='Есть успешно выполненные анализы'
                                 />
                             </ListItemButton>
                         </ListItem>
@@ -144,7 +145,7 @@ const GenLibChartContainer: React.FC<Props> = ({
                                 <TitleAnalyzeState
                                     title={sizeStandard.parsed.description.title}
                                     state={genLibs[selected].analyzed.get(i) ?? null}
-                                    messageSuccess='Анализ был успешно проведен.'
+                                    messageSuccess='Анализ был успешно проведен'
                                 />
                             }
                         />

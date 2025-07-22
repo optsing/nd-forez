@@ -6,7 +6,7 @@ import { createTheme } from '@mui/material/styles';
 
 import Logo from './components/logo';
 import { AlertProvider } from './context/alert-context';
-import { AppSettingsProvider } from './context/app-settings';
+import { AppSettingsProvider } from './context/app-settings-context';
 
 const NAVIGATION: Navigation = [
   {

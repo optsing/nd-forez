@@ -1,4 +1,4 @@
-import { ChangeEvent, Dispatch, ReactNode, SetStateAction, useMemo } from 'react';
+import { ChangeEvent, ReactNode, useMemo, useState } from 'react';
 import {
     Box,
     Tabs,
@@ -7,6 +7,7 @@ import {
     ListItemButton,
     ListItem,
     Checkbox,
+    ListSubheader,
 } from '@mui/material';
 import ChartContainer from '../chart-container';
 import SizeStandardRawChart from './raw-chart';
@@ -18,31 +19,30 @@ import { SsidChartTwoTone } from '@mui/icons-material';
 import SizeStandardSummaryChart from './summary-chart';
 
 
-interface Props {
-    sizeStandards: SizeStandardComplete[];
+type ToolbarProps = {
     selected: number;
-    setSelected: Dispatch<SetStateAction<number>>;
+}
+
+type Props = {
+    sizeStandards: SizeStandardComplete[];
     selectedMulti: boolean[];
     setSelectedMulti: (selectedMulti: boolean[]) => void;
-    selectedTab: number;
-    setSelectedTab: Dispatch<SetStateAction<number>>;
     chartHeight: number;
     isCompactMode?: boolean;
-    toolbar?: ReactNode;
+    toolbar: (props: ToolbarProps) => ReactNode;
 }
 
 const StandardChartContainer: React.FC<Props> = ({
     sizeStandards,
-    selected,
-    setSelected,
     selectedMulti,
     setSelectedMulti,
-    selectedTab,
-    setSelectedTab,
     chartHeight,
     isCompactMode,
     toolbar,
 }) => {
+    const [selected, setSelected] = useState<number>(-1);
+    const [selectedTab, setSelectedTab] = useState<number>(0);
+
     const selectedSizeStandards = useMemo(() => {
         return sizeStandards
             .filter((_, i) => selectedMulti[i])
@@ -60,9 +60,10 @@ const StandardChartContainer: React.FC<Props> = ({
 
     return (
         <ChartContainer
-            title={selected >= 0 ? `Стандарт длин: ${sizeStandards[selected].parsed.description.title}` : 'Сводный график'}
-            toolbar={toolbar}
+            title={selected >= 0 ? sizeStandards[selected].parsed.description.title : 'Сводный график'}
+            toolbar={toolbar({ selected })}
             sidebar={isCompactMode && <List>
+                <ListSubheader>Стандарты длин</ListSubheader>
                 <ListItem
                     disablePadding
                     secondaryAction={
@@ -98,7 +99,7 @@ const StandardChartContainer: React.FC<Props> = ({
                             <TitleAnalyzeState
                                 title={sizeStandard.parsed.description.title}
                                 state={sizeStandard.analyzed}
-                                messageSuccess='Анализ был успешно проведен.'
+                                messageSuccess='Анализ был успешно проведен'
                             />
                         </ListItemButton>
                     </ListItem>

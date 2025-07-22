@@ -26,6 +26,7 @@ export const AlertProvider = ({ children }: { children: ReactNode }) => {
     <AlertContext.Provider value={showAlert}>
       {children}
       <Snackbar
+        key={message}
         open={open}
         autoHideDuration={6000}
         onClose={() => setOpen(false)}

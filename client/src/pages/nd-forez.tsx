@@ -1,5 +1,5 @@
 import { useState, ChangeEvent, useEffect } from 'react';
-import { Typography, CircularProgress, Fab, Box, Button } from '@mui/material';
+import { Typography, CircularProgress, Fab, Box, Button, useTheme, useMediaQuery } from '@mui/material';
 import { ScienceTwoTone, AssessmentTwoTone, AddTwoTone } from '@mui/icons-material';
 import { GenLibAnalyzeError, GenLibAnalyzeResult, GenLibParseResult, GenLibsAnalyzeOutput, SizeStandardAnalyzeError, SizeStandardAnalyzeInput, SizeStandardAnalyzeInputItem, SizeStandardAnalyzeResult } from '../models/models';
 import {
@@ -41,6 +41,9 @@ ChartJS.register(
 const chartHeight = 480;
 
 const FileUploadPage: React.FC = () => {
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    
     const [isParsing, setIsParsing] = useState<boolean>(false);
     const [isAnalyzing, setIsAnalysing] = useState<boolean>(false);
 
@@ -49,17 +52,15 @@ const FileUploadPage: React.FC = () => {
 
     const showAlert = useAlert();
 
-    const [selectedSizeStandard, setSelectedSizeStandard] = useState<number>(-1);
     const [selectedSizeStandards, setSelectedSizeStandards] = useState<boolean[]>([]);
-    const [selectedSizeStandardTab, setSelectedSizeStandardTab] = useState<number>(0);
-
-    const [selectedGenLib, setSelectedGenLib] = useState<number>(-1);
     const [selectedGenLibs, setSelectedGenLibs] = useState<boolean[]>([]);
-    const [selectedGenLibTab, setSelectedGenLibTab] = useState<number>(-1);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
     const { generatePdf, isGeneratingPDF } = useOffscreenChartsToPdf();
+
+    const selectedSizeStandardCount = selectedSizeStandards.reduce((cnt, item) => cnt + (item ? 1 : 0), 0);
+    const selectedSizeGenLibCount = selectedGenLibs.reduce((cnt, item) => cnt + (item ? 1 : 0), 0);
 
     // const { localCalculations } = useAppSettings();
 
@@ -155,7 +156,7 @@ const FileUploadPage: React.FC = () => {
         if (isAnalyzing) return;
 
         if (sizeStandardIndicies.length === 0) {
-            showAlert('Выберите стандарты длины для анализа', 'warning');
+            showAlert('Выберите стандарты длин для анализа', 'warning');
             return;
         }
 
@@ -230,7 +231,7 @@ const FileUploadPage: React.FC = () => {
                 }
             }
 
-            showAlert('Анализ успешно выполнен.', 'success');
+            showAlert(`Анализ (${sizeStandardIndicies.length} СД/${genLibIndices.length} ГБ) успешно выполнен`, 'success');
         } catch (err) {
             console.error('Analysis error:', err);
             showAlert(`Ошибка при анализе: ${getErrorMessage(err)}`, 'error');
@@ -252,32 +253,75 @@ const FileUploadPage: React.FC = () => {
     return (
         <Box sx={{
             display: 'flex',
-            flexDirection: 'column',
-            marginX: {
-                xs: 1,
-                sm: 3,
-                md: 6,
+            flexDirection: {
+                xs: 'column-reverse',
+                sm: 'column',
             },
-            mb: 12,
-            gap: 3,
+            height: '100vh',
+            overflow: 'hidden',
         }}>
-            <div>
-                <Typography variant="h5" textAlign='center' gutterBottom sx={{ mt: 3 }}>
-                    Стандарты длин
-                </Typography>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                flexShrink: 0,
+                borderBottom: 1,
+                borderColor: 'divider',
+                p: 1,
+                gap: 1,
+            }}>
+                <Button
+                    variant='outlined'
+                    color='inherit'
+                    component='label'
+                >
+                    {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: { xs: 0, sm: 1 } }} /> : <AddTwoTone sx={{ mr: { xs: 0, sm: 1 } }} />}
+                    {!isSmallScreen && 'Файлы'}
+                    <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
+                </Button>
+                <Typography color='textSecondary' sx={{ ml: 'auto', mr: 1 }}>{selectedSizeStandardCount} СД/{selectedSizeGenLibCount} ГБ</Typography>
+                <Button
+                    variant='outlined'
+                    color='secondary'
+                    onClick={() => handleAnalyzeAll(selectedSizeStandards, selectedGenLibs)}
+                >
+                    {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: { xs: 0, sm: 1 } }} /> : <ScienceTwoTone sx={{ mr: { xs: 0, sm: 1 } }} />}
+                    {!isSmallScreen && 'Анализ'}
+                </Button>
+                <Button
+                    variant='outlined'
+                    color='primary'
+                    onClick={() => handleGeneratePdf(selectedSizeStandards, selectedGenLibs)}
+                >
+                    {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: { xs: 0, sm: 1 } }} /> : <AssessmentTwoTone sx={{ mr: { xs: 0, sm: 1 } }} />}
+                    {!isSmallScreen && 'Отчет'}
+                </Button>
+            </Box>
+            <Box sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                flex: 1,
+                py: {
+                    xs: 1,
+                    sm: 3,
+                },
+                px: {
+                    xs: 1,
+                    sm: 3,
+                    md: 5,
+                },
+                gap: 3,
+                overflowY: 'auto',
+            }}>
                 <StandardChartContainer
                     sizeStandards={sizeStandards}
-                    selected={selectedSizeStandard}
-                    setSelected={setSelectedSizeStandard}
                     selectedMulti={selectedSizeStandards}
                     setSelectedMulti={setSelectedSizeStandards}
-                    selectedTab={selectedSizeStandardTab}
-                    setSelectedTab={setSelectedSizeStandardTab}
                     chartHeight={chartHeight}
                     isCompactMode
-                    toolbar={
-                        selectedSizeStandard >= 0 && <Button
-                            onClick={() => handleSizeStandardAnalyzeClick(selectedSizeStandard)}
+                    toolbar={({ selected }) => (
+                        selected >= 0 && <Button
+                            onClick={() => handleSizeStandardAnalyzeClick(selected)}
                             variant='outlined'
                             color='secondary'
                             sx={{ ml: 'auto', flexShrink: 0 }}
@@ -285,69 +329,33 @@ const FileUploadPage: React.FC = () => {
                             {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
                             Анализ
                         </Button>
-                    }
+                    )}
                 />
-            </div>
-
-            <div>
-                <Typography variant="h5" textAlign='center' gutterBottom>
-                    Геномные библиотеки
-                </Typography>
                 <GenLibChartContainer
                     sizeStandards={sizeStandards}
                     genLibs={genLibs}
-                    selected={selectedGenLib}
-                    setSelected={setSelectedGenLib}
                     selectedMulti={selectedGenLibs}
                     setSelectedMulti={setSelectedGenLibs}
-                    selectedTab={selectedGenLibTab}
-                    setSelectedTab={setSelectedGenLibTab}
                     chartHeight={chartHeight}
-                    toolbar={
-                        selectedGenLib >= 0 && <Button
-                            onClick={() => handleAnalyzeGenLibClick(selectedSizeStandards, selectedGenLib)}
-                            variant='outlined'
-                            color='secondary'
-                        >
-                            {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
-                            Анализ
-                        </Button>
-                    }
+                    toolbar={({ selected }) => (
+                        selected >= 0 && <Box sx={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 1,
+                        }}>
+                            <Typography color='textSecondary' sx={{ mr: 1, whiteSpace: 'nowrap' }}>{selectedSizeStandardCount} СД</Typography>
+                            <Button
+                                onClick={() => handleAnalyzeGenLibClick(selectedSizeStandards, selected)}
+                                variant='outlined'
+                                color='secondary'
+                            >
+                                {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
+                                Анализ
+                            </Button>
+                        </Box>
+                    )}
                 />
-            </div>
-
-            <Box sx={{
-                display: 'flex',
-                position: 'absolute',
-                right: '2em',
-                bottom: '2em',
-                gap: 1,
-            }}>
-                <Fab
-                    variant='extended'
-                    color='default'
-                    component='label'
-                >
-                    {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AddTwoTone sx={{ mr: 1 }} />}
-                    Файлы
-                    <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
-                </Fab>
-                <Fab
-                    variant='extended'
-                    color='secondary'
-                    onClick={() => handleAnalyzeAll(selectedSizeStandards, selectedGenLibs)}
-                >
-                    {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
-                    Анализ
-                </Fab>
-                <Fab
-                    variant='extended'
-                    color='primary'
-                    onClick={() => handleGeneratePdf(selectedSizeStandards, selectedGenLibs)}
-                >
-                    {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AssessmentTwoTone sx={{ mr: 1 }} />}
-                    Отчет
-                </Fab>
             </Box>
         </Box>
     );
