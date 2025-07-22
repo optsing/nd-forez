@@ -27,6 +27,10 @@ type Props = {
     sizeStandards: SizeStandardComplete[];
     selectedMulti: boolean[];
     setSelectedMulti: (selectedMulti: boolean[]) => void;
+    selected: number;
+    setSelected: (selected: number) => void;
+    selectedTab: number;
+    setSelectedTab: (selected: number) => void;
     chartHeight: number;
     isCompactMode?: boolean;
     toolbar: (props: ToolbarProps) => ReactNode;
@@ -36,13 +40,14 @@ const StandardChartContainer: React.FC<Props> = ({
     sizeStandards,
     selectedMulti,
     setSelectedMulti,
+    selected,
+    setSelected,
+    selectedTab,
+    setSelectedTab,
     chartHeight,
     isCompactMode,
     toolbar,
 }) => {
-    const [selected, setSelected] = useState<number>(-1);
-    const [selectedTab, setSelectedTab] = useState<number>(0);
-
     const selectedSizeStandards = useMemo(() => {
         return sizeStandards
             .filter((_, i) => selectedMulti[i])
@@ -63,7 +68,6 @@ const StandardChartContainer: React.FC<Props> = ({
             title={selected >= 0 ? sizeStandards[selected].parsed.description.title : 'Сводный график'}
             toolbar={toolbar({ selected })}
             sidebar={isCompactMode && <List>
-                <ListSubheader>Стандарты длин</ListSubheader>
                 <ListItem
                     disablePadding
                     secondaryAction={

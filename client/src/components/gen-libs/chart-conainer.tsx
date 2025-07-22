@@ -20,6 +20,7 @@ import { SsidChartTwoTone } from '@mui/icons-material';
 
 type ToolbarProps = {
     selected: number;
+    selectedTab: number;
 }
 
 type Props = {
@@ -27,6 +28,10 @@ type Props = {
     genLibs: GenLibComplete[];
     selectedMulti: boolean[];
     setSelectedMulti: (selectedMulti: boolean[]) => void;
+    selected: number;
+    setSelected: (selected: number) => void;
+    selectedTab: number;
+    setSelectedTab: (selected: number) => void;
     chartHeight: number;
     toolbar: (props: ToolbarProps) => ReactNode;
 }
@@ -36,12 +41,13 @@ const GenLibChartContainer: React.FC<Props> = ({
     genLibs,
     selectedMulti,
     setSelectedMulti,
+    selected,
+    setSelected,
+    selectedTab,
+    setSelectedTab,
     chartHeight,
     toolbar,
 }) => {
-    const [selected, setSelected] = useState<number>(-1);
-    const [selectedTab, setSelectedTab] = useState<number>(-1);
-
     const selectedGenLibs = useMemo(() => {
         return genLibs
             .filter((_, i) => selectedMulti[i])
@@ -80,10 +86,9 @@ const GenLibChartContainer: React.FC<Props> = ({
     return (
         <ChartContainer
             title={selected >= 0 ? genLibs[selected].parsed.description.title : 'Сводный график'}
-            toolbar={toolbar({ selected })}
+            toolbar={toolbar({ selected, selectedTab })}
             sidebar={
                 <List>
-                    <ListSubheader>Геномные библиотеки</ListSubheader>
                     <ListItem
                         disablePadding
                         secondaryAction={
