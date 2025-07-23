@@ -1,13 +1,11 @@
+import numpy as np
+from numpy.typing import NDArray
+
 from lib.matlab.round import matlab_round
 
 
-import numpy as np
-from numpy.typing import NDArray
-from scipy.integrate import quad
-
-
 def compute_hidden_library_area(
-    baseline_corrected: NDArray[np.floating],
+    corrected_signal: NDArray[np.floating],
     start_index: np.integer,
     end_index: np.integer,
     max_peak_idx: np.integer,
@@ -30,18 +28,13 @@ def compute_hidden_library_area(
     # TODO: Почему добавляем индекс начала?
     hidden_final_lib_local_minimums = np.concatenate(([start_index], library_peak_range))  # все площади
 
-    x_vals = np.arange(len(baseline_corrected))
-
-    def interp_func(x):
-        return np.interp(x, x_vals, baseline_corrected, left=0.0, right=0.0)
-
-    hidden_lib_areas = []
+    hidden_lib_areas: list[float] = []
     # ДЛЯ ЗАКРАСКИ И ОБЩЕЙ ПЛОЩАДИ
     for i in range(len(hidden_final_lib_local_minimums) - 1):
-        x_start = hidden_final_lib_local_minimums[i]
-        x_end = hidden_final_lib_local_minimums[i + 1]
-        # Поиск площади методом Симпсона
-        area = quad(interp_func, x_start, x_end)[0]
+        start_idx = hidden_final_lib_local_minimums[i]
+        end_idx = hidden_final_lib_local_minimums[i + 1]
+        # TODO: Поиск площади методом Симпсона
+        area = float(np.trapezoid(corrected_signal[start_idx:end_idx + 1]))
         hidden_lib_areas.append(area)
 
     return library_peak_range, np.array(hidden_lib_areas, dtype=np.float64), hidden_final_lib_local_minimums

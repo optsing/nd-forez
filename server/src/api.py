@@ -3,7 +3,7 @@ from sqlmodel import Session, desc, select
 
 from database import get_session
 from lib.analyzis import analyze_size_standard, analyze_gen_lib
-from lib.parsing import parse_file
+from lib.parsing.parsing_any import parse_file
 from models.models import GenLibAnalyzeError, GenLibAnalyzeResult, GenLibParseResult, GenLibDescription, GenLibsAnalyzeInput, GenLibsAnalyzeOutput, ParseResult, ParseResultDescription, SizeStandardAnalyzeError, SizeStandardAnalyzeInput, SizeStandardAnalyzeOutput, SizeStandardAnalyzeResult, SizeStandardCalibration, SizeStandardParseResult, SizeStandardDescription
 from models.database import GenLibDB, ParseResultDB, SizeStandardDB
 
@@ -17,9 +17,8 @@ async def do_parse(files: list[UploadFile] = File(...), session: Session = Depen
     genlibs: list[GenLibParseResult] = []
 
     for file in files:
-        content = await file.read()
-        print(f"Received {file.filename}: {len(content)} bytes")
-        s, g = parse_file(content, file.filename or 'unknown')
+        print(f"Received {file.filename}")
+        s, g = parse_file(file.file, file.filename or 'unknown')
         standards += s
         genlibs += g
 

@@ -1,12 +1,11 @@
-from lib.glfind.compute_hidden_library_area import compute_hidden_library_area
-
 import numpy as np
 from numpy.typing import NDArray
-from scipy.integrate import quad
+
+from lib.glfind.compute_hidden_library_area import compute_hidden_library_area
 
 
 def handle_smooth_library_case(
-    baseline_corrected: NDArray[np.floating],
+    corrected_signal: NDArray[np.floating],
     selected_peak_locations: NDArray[np.integer],
     reference_peaks: NDArray[np.integer],
     complete_peaks_locations: NDArray[np.integer],
@@ -20,7 +19,7 @@ def handle_smooth_library_case(
     np.integer,
 ]:
     """Обработка случая, когда геномная библиотека гладкая или содержит один невыраженный пик"""
-    rest_peaks_areas = np.empty(0, dtype=np.float64)
+    rest_peaks_areas: list[float] = []
     rest_peaks = np.copy(selected_peak_locations)  # Собираем все найденные пики
     # Удаляем значения из rest_peaks, которые попадают в диапазон реперных пиков
     rest_peaks = rest_peaks[~((rest_peaks >= (reference_peaks[0] - 10)) & (rest_peaks <= (reference_peaks[0] + 10)) | (rest_peaks >= (reference_peaks[1] - 10)) & (rest_peaks <= (reference_peaks[1] + 10)))]
@@ -37,24 +36,16 @@ def handle_smooth_library_case(
         peaks_between = rest_peaks[indices_between_peaks]
 
         if len(peaks_between) > 1:
-            new_peak = np.mean(peaks_between[:2])  # Среднее значение rest_peaks между двумя соседствующими пиками (минимум между двумя текущими значениями)
+            new_peak = np.int64(np.mean(peaks_between[:2]))  # Среднее значение rest_peaks между двумя соседствующими пиками (минимум между двумя текущими значениями)
             rest_peaks_locations = np.union1d(rest_peaks_locations, new_peak)  # Добавляем новый минимум: если между текущими минимумами нашли несколько максимумов, добавляем новые минимумы, чтобы разделить эти максимумы
             i -= 1
         elif len(peaks_between) == 1:
             # Определяем границы текущей области
-            x_points = rest_peaks_locations[i:i + 2]
+            start_idx = rest_peaks_locations[i]
+            end_idx = rest_peaks_locations[i + 1]
 
-            # Рассчитываем площади между пиками
-            for j in range(len(x_points) - 1):
-                x_range = np.arange(x_points[j], x_points[j + 1] + 1)
-
-                # Интегрируем площадь под кривой
-                x_vals = np.arange(len(baseline_corrected))
-
-                def interp_func(x):
-                    return np.interp(x, x_vals, baseline_corrected, left=0.0, right=0.0)
-                area = quad(interp_func, x_range[0], x_range[-1])[0]
-                rest_peaks_areas = np.append(rest_peaks_areas, area)
+            area = float(np.trapezoid(corrected_signal[start_idx:end_idx + 1]))
+            rest_peaks_areas.append(area)
 
         i += 1
 
@@ -70,7 +61,7 @@ def handle_smooth_library_case(
     end_index = min(rest_peaks_locations[rest_peaks_locations > lib_peak_locations])
 
     hidden_lib_peak_locations, new_hidden_lib_areas, hidden_final_lib_local_minimums = compute_hidden_library_area(
-        baseline_corrected, start_index, end_index, max_lib_value)
+        corrected_signal, start_index, end_index, max_lib_value)
 
     # Определяем "неопознанные" пики и их площади
     unrecognized_peaks = np.copy(rest_peaks)

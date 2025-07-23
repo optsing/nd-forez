@@ -1,6 +1,5 @@
 import numpy as np
 from numpy.typing import NDArray
-from scipy.integrate import quad
 from scipy.signal import find_peaks, savgol_filter
 
 
@@ -26,17 +25,9 @@ def compute_peak_areas(
         # считаем количество значений между текущей парой точек
         if np.sum(peaks_between) == 1:
             # Выделим текущую область
-            x_range = np.arange(split_points[i], split_points[i + 1] + 1)
-            y_range = corrected_signal[x_range]
-
-            # Убедимся, что размерности совпадают
-            if len(x_range) == len(y_range):
-                x_vals = np.arange(len(corrected_signal))
-
-                def interp_func(x):
-                    return np.interp(x, x_vals, corrected_signal, left=0.0, right=0.0)
-
-                area: float = quad(interp_func, x_range[0], x_range[-1])[0]
-                peak_areas.append(area)
+            start_idx = split_points[i]
+            end_idx = split_points[i + 1]
+            area = float(np.trapezoid(corrected_signal[start_idx:end_idx + 1]))
+            peak_areas.append(area)
 
     return np.array(peak_areas, dtype=np.float64)

@@ -3,7 +3,6 @@ from lib.glfind.compute_hidden_library_area import compute_hidden_library_area
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy.integrate import quad
 
 from lib.glfind.select_isolated_peaks import select_isolated_peaks
 
@@ -40,7 +39,7 @@ def classify_and_extract_library_peaks(
     x_lib_fill_1 = np.empty(0, dtype=np.float64)
     y_fill = np.empty(0, dtype=np.float64)
     y_lib_fill = np.empty(0, dtype=np.float64)
-    st_areas = np.empty(0, dtype=np.float64)
+    st_areas: list[float] = []
 
     max_lib_value = np.int64(-1)
 
@@ -66,9 +65,10 @@ def classify_and_extract_library_peaks(
                     # Получаем соответствующие y-координаты, используя интерполяцию
                     y_fill = np.interp(x_fill_1, x_vals, corrected_signal)
                 elif np.any(np.isin(x_range, reference_peaks)):
-                    x_vals = np.arange(len(corrected_signal))
-                    area = quad(lambda x: np.interp(x, x_vals, corrected_signal), x_range[0], x_range[-1])[0]  # реперный пик
-                    st_areas = np.append(st_areas, area)
+                    start_idx = x_range[0]
+                    end_idx = x_range[-1]
+                    area = float(np.trapezoid(corrected_signal[start_idx:end_idx + 1]))
+                    st_areas.append(area)
         elif num_points_between_peaks >= 4:
             # Найдем максимальное значение denoised_data между текущими точками
             # Получаем индексы для complete_Peaks_Locations
@@ -145,7 +145,7 @@ def classify_and_extract_library_peaks(
         final_lib_local_minimums,
         unrecognized_peaks,
         max_lib_value,
-        st_areas,
+        np.array(st_areas, dtype=np.float64),
         x_fill_1,
         x_lib_fill_1,
         y_fill,

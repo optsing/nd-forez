@@ -1,12 +1,11 @@
 import numpy as np
 from numpy.typing import NDArray
-from scipy.integrate import trapezoid
 
 
 def select_reference_peaks(
     peaks: NDArray[np.integer],
     expected_spacing: np.integer,
-    baseline_corrected: NDArray[np.floating],
+    corrected_signal: NDArray[np.floating],
 ) -> tuple[NDArray[np.integer], NDArray[np.integer]]:
     """Нахождение двух реперных пиков на основе ожидаемого расстояния между ними"""
 
@@ -42,7 +41,7 @@ def select_reference_peaks(
             right_idx = peak_idx + 7
 
             # Интегрируем площадь между границами
-            area = trapezoid(baseline_corrected[left_idx:right_idx + 1])
+            area = np.trapezoid(corrected_signal[left_idx:right_idx + 1])
             areas.append(area)
 
         # Находим индекс наибольшей площади

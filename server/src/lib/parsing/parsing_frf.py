@@ -1,14 +1,15 @@
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
+from typing import IO
 
 from models.models import GenLibDescription, GenLibParseResult, SizeStandardCalibration, SizeStandardDescription, SizeStandardParseResult
 
 
-def parse_file(content: bytes, filename: str) -> tuple[list[SizeStandardParseResult], list[GenLibParseResult]]:
+def parse_file(file: IO[bytes], filename: str) -> tuple[list[SizeStandardParseResult], list[GenLibParseResult]]:
     size_standards: list[SizeStandardParseResult] = []
     gen_libs: list[GenLibParseResult] = []
     try:
-        root = ElementTree.fromstring(content)
+        root = ElementTree.parse(file)
         raw_title: str = root.findtext('Title') or 'Unknown'
         type_value = root.findtext('Type')
         if type_value == 'AllelicLadder':

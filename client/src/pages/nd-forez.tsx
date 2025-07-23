@@ -61,30 +61,30 @@ const FileUploadPage: React.FC = () => {
     // const analyzeData = localCalculations ? clientAnalyzeData : serverAnalyzeData;
 
     useEffect(() => {
-        const fn = async (id: number) => {
-            setIsParsing(true);
-            try {
-                const result = await getParseResult(id);
-                setSizeStandards([...sizeStandards, ...result.size_standards.map((sizeStandard) => ({
-                    parsed: sizeStandard,
-                    analyzed: null,
-                    analyzedGenLibs: new Map(),
-                }))]);
-                setGenLibs([...genLibs, ...result.gen_libs]);
-                setSelectedGenLibMulti([...selectedGenLibMulti, ...new Array(result.gen_libs.length).fill(false)]);
-                if (result.id) {
-                    searchParams.set('id', result.id.toString());
-                    setSearchParams(searchParams);
-                }
-            } catch (err) {
-                console.error(err);
-                showAlert(`Ошибка при получении данных: ${getErrorMessage(err)}`, 'error');
-            } finally {
-                setIsParsing(false);
-            }
-        }
         const id = searchParams.get('id')
         if (id) {
+            const fn = async (id: number) => {
+                setIsParsing(true);
+                try {
+                    const result = await getParseResult(id);
+                    setSizeStandards([...sizeStandards, ...result.size_standards.map((sizeStandard) => ({
+                        parsed: sizeStandard,
+                        analyzed: null,
+                        analyzedGenLibs: new Map(),
+                    }))]);
+                    setGenLibs([...genLibs, ...result.gen_libs]);
+                    setSelectedGenLibMulti([...selectedGenLibMulti, ...new Array(result.gen_libs.length).fill(false)]);
+                    if (result.id) {
+                        searchParams.set('id', result.id.toString());
+                        setSearchParams(searchParams);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showAlert(`Ошибка при получении данных: ${getErrorMessage(err)}`, 'error');
+                } finally {
+                    setIsParsing(false);
+                }
+            }
             fn(Number.parseInt(id));
         }
     }, []);
@@ -95,7 +95,6 @@ const FileUploadPage: React.FC = () => {
         if (files.length === 0) return;
 
         setIsParsing(true);
-
         try {
             const result = await serverParseFiles(files);
             setSizeStandards([...sizeStandards, ...result.size_standards.map((sizeStandard) => ({
@@ -207,6 +206,7 @@ const FileUploadPage: React.FC = () => {
                     color='inherit'
                     component='label'
                     sx={{ ml: 1 }}
+                    disabled={isParsing}
                 >
                     {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AddTwoTone sx={{ mr: 1 }} />}
                     Файлы
@@ -222,6 +222,7 @@ const FileUploadPage: React.FC = () => {
                         variant='outlined'
                         color='secondary'
                         onClick={() => handleAnalyze(selectedSizeStandard, selectedGenLibMulti)}
+                        disabled={isAnalyzing}
                     >
                         {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
                         Анализ
@@ -230,6 +231,7 @@ const FileUploadPage: React.FC = () => {
                         variant='outlined'
                         color='primary'
                         onClick={() => handleGeneratePdf(selectedSizeStandard, selectedGenLibMulti)}
+                        disabled={isGeneratingPDF}
                     >
                         {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AssessmentTwoTone sx={{ mr: 1 }} />}
                         Отчет
