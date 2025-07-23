@@ -9,7 +9,7 @@ type Props = {
     chartHeight: number;
 }
 
-const GenLibAnalyzedChart: React.FC<Props> = ({
+const GenLibTabAnalyzed: React.FC<Props> = ({
     genLib,
     chartHeight,
 }) => {
@@ -42,4 +42,4 @@ const GenLibAnalyzedChart: React.FC<Props> = ({
     )
 }
 
-export default GenLibAnalyzedChart;
+export default GenLibTabAnalyzed;

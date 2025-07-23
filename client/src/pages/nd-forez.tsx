@@ -16,12 +16,11 @@ import Zoom from 'chartjs-plugin-zoom';
 import Annotation from 'chartjs-plugin-annotation';
 import { useSearchParams } from 'react-router';
 import { useAlert } from '../context/alert-context';
-import StandardChartContainer from '../components/size-standards/chart-container';
-import GenLibChartContainer from '../components/gen-libs/chart-conainer';
+import MainContainer from '../components/main-container';
 import { useOffscreenChartsToPdf } from '../helpers/pdf';
 import { Chromatogram } from '../helpers/chromatogram';
 import { parseFiles as serverParseFiles, getParseResult, getErrorMessage, analyzeGenLibs, analyzeSizeStandard } from '../helpers/api';
-import { GenLibComplete, SizeStandardComplete } from '../models/client';
+import { SizeStandardComplete } from '../models/client';
 
 
 ChartJS.register(
@@ -42,31 +41,19 @@ const chartHeight = 480;
 
 const FileUploadPage: React.FC = () => {
     const theme = useTheme();
-    const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'));
     const showAlert = useAlert();
 
     const [isParsing, setIsParsing] = useState<boolean>(false);
     const [isAnalyzing, setIsAnalysing] = useState<boolean>(false);
 
-    const [selectedTab, setSelectedTab] = useState<number>(0);
-
     const [sizeStandards, setSizeStandards] = useState<SizeStandardComplete[]>([]);
-    const [genLibs, setGenLibs] = useState<GenLibComplete[]>([]);
+    const [genLibs, setGenLibs] = useState<GenLibParseResult[]>([]);
 
-    const [selectedSizeStandards, setSelectedSizeStandards] = useState<boolean[]>([]);
-    const [selectedSizeStandard, setSelectedSizeStandard] = useState<number>(-1);
-    const [selectedSizeStandardTab, setSelectedSizeStandardTab] = useState<number>(0);
-
-    const [selectedGenLibs, setSelectedGenLibs] = useState<boolean[]>([]);
-    const [selectedGenLib, setSelectedGenLib] = useState<number>(-1);
-    const [selectedGenLibTab, setSelectedGenLibTab] = useState<number>(-1);
+    const [selectedGenLibMulti, setSelectedGenLibMulti] = useState<boolean[]>([]);
 
     const [searchParams, setSearchParams] = useSearchParams();
 
     const { generatePdf, isGeneratingPDF } = useOffscreenChartsToPdf();
-
-    const selectedSizeStandardCount = selectedSizeStandards.reduce((cnt, item) => cnt + (item ? 1 : 0), 0);
-    const selectedSizeGenLibCount = selectedGenLibs.reduce((cnt, item) => cnt + (item ? 1 : 0), 0);
 
     // const { localCalculations } = useAppSettings();
 
@@ -81,13 +68,10 @@ const FileUploadPage: React.FC = () => {
                 setSizeStandards([...sizeStandards, ...result.size_standards.map((sizeStandard) => ({
                     parsed: sizeStandard,
                     analyzed: null,
+                    analyzedGenLibs: new Map(),
                 }))]);
-                setGenLibs([...genLibs, ...result.gen_libs.map(genLib => ({
-                    parsed: genLib,
-                    analyzed: new Map(),
-                }))]);
-                setSelectedSizeStandards([...selectedSizeStandards, ...new Array(result.size_standards.length).fill(false)])
-                setSelectedGenLibs([...selectedGenLibs, ...new Array(result.gen_libs.length).fill(false)]);
+                setGenLibs([...genLibs, ...result.gen_libs]);
+                setSelectedGenLibMulti([...selectedGenLibMulti, ...new Array(result.gen_libs.length).fill(false)]);
                 if (result.id) {
                     searchParams.set('id', result.id.toString());
                     setSearchParams(searchParams);
@@ -117,13 +101,10 @@ const FileUploadPage: React.FC = () => {
             setSizeStandards([...sizeStandards, ...result.size_standards.map((sizeStandard) => ({
                 parsed: sizeStandard,
                 analyzed: null,
+                analyzedGenLibs: new Map(),
             }))]);
-            setGenLibs([...genLibs, ...result.gen_libs.map(genLib => ({
-                parsed: genLib,
-                analyzed: new Map(),
-            }))]);
-            setSelectedSizeStandards([...selectedSizeStandards, ...new Array(result.size_standards.length).fill(false)])
-            setSelectedGenLibs([...selectedGenLibs, ...new Array(result.gen_libs.length).fill(false)]);
+            setGenLibs([...genLibs, ...result.gen_libs]);
+            setSelectedGenLibMulti([...selectedGenLibMulti, ...new Array(result.gen_libs.length).fill(false)]);
             if (result.id) {
                 searchParams.set('id', result.id.toString());
                 setSearchParams(searchParams);
@@ -136,105 +117,67 @@ const FileUploadPage: React.FC = () => {
         }
     };
 
-    const handleSizeStandardAnalyzeClick = async (sizeStandardIndex: number) => {
-        if (isAnalyzing) return;
-        await analyzeAllByIndices([sizeStandardIndex], []);
-    }
-
-    const handleAnalyzeAll = async (selectedSizeStandards: boolean[], selectedGenLibs: boolean[]) => {
-        const selectedSizeStandardIndices: number[] = selectedSizeStandards
-            .map((val, i) => val ? i : -1)
-            .filter(ind => ind !== -1);
-        const selectedGenLibIndices: number[] = selectedGenLibs
-            .map((val, i) => val ? i : -1)
-            .filter(ind => ind !== -1);
-        await analyzeAllByIndices(selectedSizeStandardIndices, selectedGenLibIndices);
-    }
-
-    const handleAnalyzeGenLibClick = async (sizeStandardsIndex: number, genLibIndex: number) => {
-        await analyzeAllByIndices([sizeStandardsIndex], [genLibIndex]);
-    };
-
-    const analyzeAllByIndices = async (sizeStandardIndicies: number[], genLibIndices: number[]) => {
+    const handleAnalyze = async (sizeStandardIndex: number, genLibMulti: boolean[]) => {
         if (isAnalyzing) return;
 
-        if (sizeStandardIndicies.length === 0) {
-            showAlert('Выберите стандарты длин для анализа', 'warning');
-            return;
-        }
+        const genLibIndices: number[] = genLibMulti
+            .map((val, i) => val ? i : -1)
+            .filter(ind => ind !== -1);
 
         setIsAnalysing(true);
         try {
-            const sizeStandardInputItems: SizeStandardAnalyzeInputItem[] = [];
-            for (const ind of sizeStandardIndicies) {
-                sizeStandardInputItems.push({
-                    raw_signal: sizeStandards[ind].parsed.signal,
-                    calibration: sizeStandards[ind].parsed.calibration,
-                });
-            }
-            const { data: sizeStandardOutput } = await analyzeSizeStandard({
-                items: sizeStandardInputItems,
+            const { data: [sizeStandardResult] } = await analyzeSizeStandard({
+                items: [{
+                    raw_signal: sizeStandards[sizeStandardIndex].parsed.signal,
+                    calibration: sizeStandards[sizeStandardIndex].parsed.calibration,
+                }],
             });
 
-            const sizeStandardResult = new Map<number, SizeStandardAnalyzeResult | SizeStandardAnalyzeError>();
-            for (let i = 0; i < sizeStandardOutput.length; i++) {
-                sizeStandardResult.set(sizeStandardIndicies[i], sizeStandardOutput[i]);
-            }
-
-            setSizeStandards(sizeStandards.map((sizeStandard, i) => (
-                sizeStandardResult.has(i)
-                    ? { ...sizeStandard, analyzed: sizeStandardResult.get(i)! }
+            setSizeStandards(prev => prev.map((sizeStandard, i) => (
+                i === sizeStandardIndex
+                    ? {
+                        ...sizeStandard,
+                        analyzed: sizeStandardResult,
+                    }
                     : sizeStandard
             )));
 
-            for (const s of sizeStandardOutput) {
-                if (s.state != 'success') {
-                    showAlert(`Ошибка при анализе стандартов длин: ${s.message}`, 'error');
+            if (sizeStandardResult.state != 'success') {
+                showAlert(`Ошибка при анализе стандартов длин: ${sizeStandardResult.message}`, 'error');
+                return;
+            }
+
+            if (genLibIndices.length === 0) {
+                showAlert(`Анализ стандарта длин успешно выполнен`, 'success');
+                return;
+            }
+
+            const { data: genLibResults } = await analyzeGenLibs({
+                raw_signals: genLibIndices.map(i => genLibs[i].signal),
+                size_standard_analyze_peaks: sizeStandardResult.peaks,
+            });
+
+            const preparedResult = genLibIndices.map<[number, GenLibAnalyzeResult | GenLibAnalyzeError]>((ind, i) => [ind, genLibResults[i]]);
+            setSizeStandards(prev => prev.map((sizeStandard, i) => (
+                i === sizeStandardIndex
+                    ? {
+                        ...sizeStandard,
+                        analyzedGenLibs: new Map([
+                            ...sizeStandard.analyzedGenLibs,
+                            ...preparedResult,
+                        ])
+                    }
+                    : sizeStandard
+            )))
+
+            for (const res of genLibResults) {
+                if (res.state === 'error') {
+                    showAlert(`Ошибка при анализе геномных библиотек: ${res.message}`, 'error');
                     return;
                 }
             }
 
-            const genLibOutput: GenLibsAnalyzeOutput[] = [];
-            for (const sizeStandard of sizeStandardOutput) {
-                if (sizeStandard?.state === 'error') continue;
-                genLibOutput.push(await analyzeGenLibs({
-                    raw_signals: genLibIndices.map(i => genLibs[i].parsed.signal),
-                    size_standard_analyze_peaks: sizeStandard.peaks,
-                }));
-            }
-
-            const genLibResult = new Map<number, Map<number, GenLibAnalyzeResult | GenLibAnalyzeError>>()
-
-            for (let i = 0; i < genLibOutput.length; i++) {
-                const sizeStandardInd = sizeStandardIndicies[i];
-                for (let j = 0; j < genLibOutput[i].data.length; j++) {
-                    const genLibInd = genLibIndices[j];
-                    if (!genLibResult.has(genLibInd)) {
-                        genLibResult.set(genLibInd, new Map(genLibs[genLibInd].analyzed));
-                    }
-                    genLibResult.get(genLibInd)!.set(sizeStandardInd, genLibOutput[i].data[j]);
-                }
-            }
-
-            setGenLibs(genLibs.map((genLib, i) => (
-                genLibResult.has(i)
-                    ? {
-                        ...genLib,
-                        analyzed: genLibResult.get(i)!,
-                    }
-                    : genLib
-            )));
-
-            for (const genLib of genLibOutput) {
-                for (const s of genLib.data) {
-                    if (s.state === 'error') {
-                        showAlert(`Ошибка при анализе геномных библиотек: ${s.message}`, 'error');
-                        return;
-                    }
-                }
-            }
-
-            showAlert(`Анализ (${sizeStandardIndicies.length} СД/${genLibIndices.length} ГБ) успешно выполнен`, 'success');
+            showAlert(`Анализ ${genLibIndices.length} ГБ успешно выполнен`, 'success');
         } catch (err) {
             console.error('Analysis error:', err);
             showAlert(`Ошибка при анализе: ${getErrorMessage(err)}`, 'error');
@@ -243,65 +186,42 @@ const FileUploadPage: React.FC = () => {
         }
     };
 
-    const handleGeneratePdf = async (selectedSizeStandards: boolean[], selectedGenLibs: boolean[]) => {
-        const selectedSizeStandardIndices: number[] = selectedSizeStandards
+    const handleGeneratePdf = async (sizeStandardIndex: number, genLibMulti: boolean[]) => {
+        const selectedGenLibIndices: number[] = genLibMulti
             .map((val, i) => val ? i : -1)
             .filter(ind => ind !== -1);
-        const selectedGenLibIndices: number[] = selectedGenLibs
-            .map((val, i) => val ? i : -1)
-            .filter(ind => ind !== -1);
-        await generatePdf(sizeStandards, genLibs, selectedSizeStandardIndices, selectedGenLibIndices);
+        await generatePdf(sizeStandards[sizeStandardIndex], genLibs, selectedGenLibIndices);
     }
 
     return (
-        <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100vh',
-            overflow: 'hidden',
-        }}>
-            <Box sx={{
-                height: '48px',
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                flexShrink: 0,
-                borderBottom: 1,
-                borderColor: 'divider',
-                gap: 1,
-            }}>
-                <Tabs
-                    value={selectedTab}
-                    onChange={(e, value) => setSelectedTab(value)}
-                    variant='standard'
+        <MainContainer
+            sizeStandards={sizeStandards}
+            genLibs={genLibs}
+            selectedGenLibMulti={selectedGenLibMulti}
+            setSelectedGenLibMulti={setSelectedGenLibMulti}
+            chartHeight={chartHeight}
+            isCompactMode
+            leftToolbar={
+                <Button
+                    variant='outlined'
+                    color='inherit'
+                    component='label'
+                    sx={{ ml: 1 }}
                 >
-                    <Tab
-                        value={0}
-                        label='Стандарты длин'
-                    />
-                    <Tab
-                        value={1}
-                        label='Геномные библиотеки'
-                    />
-                </Tabs>
-                {!isSmallScreen && <>
-                    <Button
-                        variant='outlined'
-                        color='inherit'
-                        component='label'
-                        sx={{ ml: 1 }}
-                    >
-                        {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AddTwoTone sx={{ mr: 1 }} />}
-                        Файлы
-                        <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
-                    </Button>
-                    <Typography
-                        color='textSecondary' sx={{ ml: 'auto', mr: 1, whiteSpace: 'nowrap' }}
-                    >{selectedSizeStandardCount} СД/{selectedSizeGenLibCount} ГБ</Typography>
+                    {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AddTwoTone sx={{ mr: 1 }} />}
+                    Файлы
+                    <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
+                </Button>
+            }
+            rightToolbar={({ selectedSizeStandard, selectedGenLibMulti }) => (
+                <Box sx={{
+                    display: 'flex',
+                    gap: 1,
+                }}>
                     <Button
                         variant='outlined'
                         color='secondary'
-                        onClick={() => handleAnalyzeAll(selectedSizeStandards, selectedGenLibs)}
+                        onClick={() => handleAnalyze(selectedSizeStandard, selectedGenLibMulti)}
                     >
                         {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
                         Анализ
@@ -309,112 +229,14 @@ const FileUploadPage: React.FC = () => {
                     <Button
                         variant='outlined'
                         color='primary'
-                        onClick={() => handleGeneratePdf(selectedSizeStandards, selectedGenLibs)}
-                        sx={{ mr: 1 }}
+                        onClick={() => handleGeneratePdf(selectedSizeStandard, selectedGenLibMulti)}
                     >
                         {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AssessmentTwoTone sx={{ mr: 1 }} />}
                         Отчет
                     </Button>
-                </>}
-            </Box>
-            <Box sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                flex: 1,
-                py: {
-                    xs: 1,
-                    sm: 3,
-                },
-                px: {
-                    xs: 1,
-                    sm: 3,
-                    md: 5,
-                },
-                overflowY: 'auto',
-            }}>
-                {selectedTab === 0 && <StandardChartContainer
-                    sizeStandards={sizeStandards}
-                    selectedMulti={selectedSizeStandards}
-                    setSelectedMulti={setSelectedSizeStandards}
-                    selected={selectedSizeStandard}
-                    setSelected={setSelectedSizeStandard}
-                    selectedTab={selectedSizeStandardTab}
-                    setSelectedTab={setSelectedSizeStandardTab}
-                    chartHeight={chartHeight}
-                    isCompactMode
-                    toolbar={({ selected }) => (
-                        selected >= 0 && <Button
-                            onClick={() => handleSizeStandardAnalyzeClick(selected)}
-                            variant='outlined'
-                            color='secondary'
-                            sx={{ ml: 'auto', flexShrink: 0 }}
-                        >
-                            {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
-                            Анализ
-                        </Button>
-                    )}
-                />}
-                {selectedTab === 1 && <GenLibChartContainer
-                    sizeStandards={sizeStandards}
-                    genLibs={genLibs}
-                    selectedMulti={selectedGenLibs}
-                    setSelectedMulti={setSelectedGenLibs}
-                    selected={selectedGenLib}
-                    setSelected={setSelectedGenLib}
-                    selectedTab={selectedGenLibTab}
-                    setSelectedTab={setSelectedGenLibTab}
-                    chartHeight={chartHeight}
-                    toolbar={({ selected, selectedTab }) => (
-                        selected >= 0 && selectedTab >= 0 && <Button
-                            onClick={() => handleAnalyzeGenLibClick(selectedTab, selected)}
-                            variant='outlined'
-                            color='secondary'
-                        >
-                            {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
-                            Анализ
-                        </Button>
-                    )}
-                />}
-            </Box>
-            {isSmallScreen && <Box sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                flexShrink: 0,
-                borderTop: 1,
-                borderColor: 'divider',
-                p: 1,
-                gap: 1,
-            }}>
-                <Button
-                    variant='outlined'
-                    color='inherit'
-                    component='label'
-                    sx={{ ml: 1 }}
-                >
-                    {isParsing ? <CircularProgress color='inherit' size={24} /> : <AddTwoTone />}
-                    <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
-                </Button>
-                <Typography
-                    color='textSecondary' sx={{ ml: 'auto', mr: 1, whiteSpace: 'nowrap' }}
-                >{selectedSizeStandardCount} СД/{selectedSizeGenLibCount} ГБ</Typography>
-                <Button
-                    variant='outlined'
-                    color='secondary'
-                    onClick={() => handleAnalyzeAll(selectedSizeStandards, selectedGenLibs)}
-                >
-                    {isAnalyzing ? <CircularProgress color='inherit' size={24} /> : <ScienceTwoTone />}
-                </Button>
-                <Button
-                    variant='outlined'
-                    color='primary'
-                    onClick={() => handleGeneratePdf(selectedSizeStandards, selectedGenLibs)}
-                    sx={{ mr: 1 }}
-                >
-                    {isGeneratingPDF ? <CircularProgress color='inherit' size={24} /> : <AssessmentTwoTone />}
-                </Button>
-            </Box>}
-        </Box>
+                </Box>
+            )}
+        />
     );
 };
 

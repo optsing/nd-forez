@@ -1,7 +1,7 @@
 import { Box, Typography } from "@mui/material";
-import { SizeStandardAnalyzeError, SizeStandardAnalyzeResult, SizeStandardParseResult } from '../../models/models';
+import { SizeStandardAnalyzeError, SizeStandardAnalyzeResult } from "../../models/models";
 import ChartWithZoom from "../chart-with-zoom";
-import { prepareStandardAnalyzedCalibrationCurve, prepareStandardAnalyzedTable } from '../../chart-data/chart-data';
+import { prepareStadardAnalyzedData, prepareStandardAnalyzedTable } from "../../chart-data/chart-data";
 import SimpleTable from "../simple-table";
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
     chartHeight: number;
 }
 
-const SizeStandardAnalyzedCurveChart: React.FC<Props> = ({
+const SizeStandardTabAnalyzed: React.FC<Props> = ({
     sizeStandard,
     chartHeight,
 }) => {
@@ -25,8 +25,7 @@ const SizeStandardAnalyzedCurveChart: React.FC<Props> = ({
         <Box p={2}>
             <ChartWithZoom
                 rawData={sizeStandard}
-                prepare={prepareStandardAnalyzedCalibrationCurve}
-                yTitle='Время выхода, с'
+                prepare={prepareStadardAnalyzedData}
                 sx={{ mb: 3 }}
                 height={chartHeight}
             />
@@ -38,4 +37,4 @@ const SizeStandardAnalyzedCurveChart: React.FC<Props> = ({
     );
 };
 
-export default SizeStandardAnalyzedCurveChart;
+export default SizeStandardTabAnalyzed;

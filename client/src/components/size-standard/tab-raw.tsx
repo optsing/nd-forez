@@ -9,7 +9,7 @@ type Props = {
     chartHeight: number;
 }
 
-const SizeStandardRawChart: React.FC<Props> = ({
+const SizeStandardTabRaw: React.FC<Props> = ({
     sizeStandard,
     chartHeight,
 }) => {
@@ -29,4 +29,4 @@ const SizeStandardRawChart: React.FC<Props> = ({
     );
 };
 
-export default SizeStandardRawChart;
+export default SizeStandardTabRaw;

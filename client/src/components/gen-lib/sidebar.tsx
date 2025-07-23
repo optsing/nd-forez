@@ -1,20 +1,23 @@
-import { SsidChartTwoTone } from "@mui/icons-material";
-import { Checkbox, List, ListItem, ListItemButton } from "@mui/material";
+import { Checkbox, List, ListItem, ListItemButton, ListSubheader } from "@mui/material";
 import TitleAnalyzeState from "../title-analyze-state";
 import { SizeStandardComplete } from "../../models/client";
+import { SsidChartTwoTone } from "@mui/icons-material";
 import { ChangeEvent } from "react";
+import { GenLibParseResult } from "../../models/models";
 
 
 type Props = {
-    sizeStandards: SizeStandardComplete[];
+    sizeStandard: SizeStandardComplete;
+    genLibs: GenLibParseResult[];
     selected: number;
     setSelected: (selected: number) => void;
     selectedMulti: boolean[];
     setSelectedMulti: (selectedMulti: boolean[]) => void;
 }
 
-const SizeStandardSidebar: React.FC<Props> = ({
-    sizeStandards,
+const GenLibSidebar: React.FC<Props> = ({
+    sizeStandard,
+    genLibs,
     selected,
     setSelected,
     selectedMulti,
@@ -22,7 +25,7 @@ const SizeStandardSidebar: React.FC<Props> = ({
 }) => {
     const handleSelectAll = (e: ChangeEvent<HTMLInputElement>) => {
         const checked = e.target.checked;
-        setSelectedMulti(new Array(sizeStandards.length).fill(checked));
+        setSelectedMulti(new Array(genLibs.length).fill(checked));
     };
 
     const handleSelect = (index: number) => {
@@ -31,6 +34,16 @@ const SizeStandardSidebar: React.FC<Props> = ({
 
     return (
         <List>
+            <ListItemButton
+                selected={selected === -2}
+                onClick={() => setSelected(-2)}
+            >
+                <TitleAnalyzeState
+                    title='Стандарт длин'
+                    state={sizeStandard.analyzed}
+                />
+            </ListItemButton>
+            <ListSubheader sx={{ bgcolor: 'background.paper' }}>Геномные библиотеки</ListSubheader>
             <ListItem
                 disablePadding
                 secondaryAction={
@@ -45,10 +58,10 @@ const SizeStandardSidebar: React.FC<Props> = ({
                     onClick={() => setSelected(-1)}
                 >
                     <SsidChartTwoTone sx={{ mr: 1 }} />
-                    Все стандарты
+                    Все библиотеки
                 </ListItemButton>
             </ListItem>
-            {sizeStandards.map((sizeStandard, i) => (
+            {genLibs.map((g, i) => (
                 <ListItem
                     key={i}
                     disablePadding
@@ -60,19 +73,18 @@ const SizeStandardSidebar: React.FC<Props> = ({
                     }
                 >
                     <ListItemButton
-                        selected={i === selected}
+                        selected={selected === i}
                         onClick={() => setSelected(i)}
                     >
                         <TitleAnalyzeState
-                            title={sizeStandard.parsed.description.title}
-                            state={sizeStandard.analyzed}
-                            messageSuccess='Анализ был успешно проведен'
+                            title={g.description.title}
+                            state={sizeStandard.analyzedGenLibs.get(i) ?? null}
                         />
                     </ListItemButton>
                 </ListItem>
             ))}
         </List>
     );
-}
+};
 
-export default SizeStandardSidebar;
+export default GenLibSidebar;

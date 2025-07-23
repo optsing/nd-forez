@@ -42,7 +42,13 @@ const theme: AppTheme = createTheme({
           default: '#f5f5f5',
         },
       },
-    }, dark: true
+    }, dark: {
+      palette: {
+        background: {
+          default: '#0a0a0a',
+        }
+      }
+    }
   },
 });
 

@@ -8,7 +8,7 @@ type Props = {
     chartHeight: number;
 }
 
-const GenLibRawChart: React.FC<Props> = ({
+const GenLibTabRaw: React.FC<Props> = ({
     genLib,
     chartHeight,
 }) => {
@@ -23,4 +23,4 @@ const GenLibRawChart: React.FC<Props> = ({
     );
 }
 
-export default GenLibRawChart;
+export default GenLibTabRaw;

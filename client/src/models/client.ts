@@ -3,11 +3,7 @@ import { GenLibAnalyzeError, GenLibAnalyzeResult, GenLibParseResult, SizeStandar
 export interface SizeStandardComplete {
     parsed: SizeStandardParseResult;
     analyzed: SizeStandardAnalyzeResult | SizeStandardAnalyzeError | null;
-}
-
-export interface GenLibComplete {
-    parsed: GenLibParseResult;
-    analyzed: Map<number, GenLibAnalyzeResult | GenLibAnalyzeError>
+    analyzedGenLibs: Map<number, GenLibAnalyzeResult | GenLibAnalyzeError>;
 }
 
 export type AnalyzeState = {
