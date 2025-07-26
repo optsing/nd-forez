@@ -1,4 +1,4 @@
-import { Checkbox, List, ListItem, ListItemButton, ListSubheader } from "@mui/material";
+import { Checkbox, List, ListItem, ListItemButton } from "@mui/material";
 import TitleAnalyzeState from "../title-analyze-state";
 import { SizeStandardComplete } from "../../models/client";
 import { SsidChartTwoTone } from "@mui/icons-material";
@@ -7,7 +7,7 @@ import { GenLibParseResult } from "../../models/models";
 
 
 type Props = {
-    sizeStandard: SizeStandardComplete;
+    sizeStandard: SizeStandardComplete | null;
     genLibs: GenLibParseResult[];
     selected: number;
     setSelected: (selected: number) => void;
@@ -34,17 +34,7 @@ const GenLibSidebar: React.FC<Props> = ({
 
     return (
         <List>
-            <ListItemButton
-                selected={selected === -2}
-                onClick={() => setSelected(-2)}
-            >
-                <TitleAnalyzeState
-                    title='Стандарт длин'
-                    state={sizeStandard.analyzed}
-                />
-            </ListItemButton>
-            <ListSubheader sx={{ bgcolor: 'background.paper' }}>Геномные библиотеки</ListSubheader>
-            <ListItem
+            {genLibs.length > 0 && <ListItem
                 disablePadding
                 secondaryAction={
                     <Checkbox
@@ -60,7 +50,7 @@ const GenLibSidebar: React.FC<Props> = ({
                     <SsidChartTwoTone sx={{ mr: 1 }} />
                     Все библиотеки
                 </ListItemButton>
-            </ListItem>
+            </ListItem>}
             {genLibs.map((g, i) => (
                 <ListItem
                     key={i}
@@ -78,7 +68,7 @@ const GenLibSidebar: React.FC<Props> = ({
                     >
                         <TitleAnalyzeState
                             title={g.description.title}
-                            state={sizeStandard.analyzedGenLibs.get(i) ?? null}
+                            state={sizeStandard?.analyzedGenLibs.get(i) ?? null}
                         />
                     </ListItemButton>
                 </ListItem>

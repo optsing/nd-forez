@@ -1,8 +1,6 @@
-import { SsidChartTwoTone } from "@mui/icons-material";
-import { Checkbox, List, ListItem, ListItemButton, ListSubheader } from "@mui/material";
+import { List, ListItemButton } from "@mui/material";
 import TitleAnalyzeState from "../title-analyze-state";
 import { SizeStandardComplete } from "../../models/client";
-import { ChangeEvent } from "react";
 
 
 type Props = {
@@ -17,10 +15,10 @@ const SizeStandardSidebar: React.FC<Props> = ({
     setSelected,
 }) => {
     return (
-        sizeStandards.length > 0 && <List>
-            <ListSubheader sx= {{ bgcolor: 'background.default' }}>Стандарты длин</ListSubheader>
+        <List>
             {sizeStandards.map((sizeStandard, i) => (
                 <ListItemButton
+                    key={i}
                     selected={i === selected}
                     onClick={() => setSelected(i)}
                 >

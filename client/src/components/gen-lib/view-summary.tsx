@@ -14,21 +14,34 @@ const GenLibSummaryChart: React.FC<Props> = ({
     genLibs,
     chartHeight,
 }) => {
-    if (genLibs.length === 0) {
-        return (
-            <Box p={2} height={`${chartHeight + 32 + 49}px`} display='flex' alignItems='center' justifyContent='center'>
-                <Typography variant='h5' textAlign='center'>Выберите геномные библиотки для просмотра</Typography>
-            </Box>
-        );
-    }
     return (
-        <Box sx={{ p: 2 }}>
-            <ChartWithZoom
-                height={chartHeight + 49}
-                rawData={genLibs}
-                prepare={prepareGenLibs}
-            />
-        </Box>
+        <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%',
+        }}>
+            <Box sx={{
+                borderBottom: 1,
+                borderColor: 'divider',
+                display: 'flex',
+                alignItems: 'center',
+                px: 1,
+                height: '48px',
+            }}>
+                <Typography sx={{ mx: 1 }}>Сводный график</Typography>
+            </Box>
+            {genLibs.length > 0
+                ? <Box sx={{ p: 2 }}>
+                    <ChartWithZoom
+                        height={chartHeight}
+                        rawData={genLibs}
+                        prepare={prepareGenLibs}
+                    />
+                </Box>
+                : <Box p={2} height={`${chartHeight + 32}px`} display='flex' alignItems='center' justifyContent='center'>
+                    <Typography variant='h5' textAlign='center'>Выберите геномные библиотки для просмотра</Typography>
+                </Box>}
+        </div>
     );
 }
 

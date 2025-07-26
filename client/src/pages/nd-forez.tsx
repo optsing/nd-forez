@@ -1,7 +1,7 @@
 import { useState, ChangeEvent, useEffect } from 'react';
-import { Typography, CircularProgress, Box, Button, useTheme, useMediaQuery, Tabs, Tab } from '@mui/material';
+import { Typography, CircularProgress, Button } from '@mui/material';
 import { ScienceTwoTone, AssessmentTwoTone, AddTwoTone } from '@mui/icons-material';
-import { GenLibAnalyzeError, GenLibAnalyzeResult, GenLibParseResult, GenLibsAnalyzeOutput, SizeStandardAnalyzeError, SizeStandardAnalyzeInput, SizeStandardAnalyzeInputItem, SizeStandardAnalyzeResult } from '../models/models';
+import { GenLibAnalyzeError, GenLibAnalyzeResult, GenLibParseResult } from '../models/models';
 import {
     Chart as ChartJS,
     LineElement,
@@ -40,7 +40,6 @@ ChartJS.register(
 const chartHeight = 480;
 
 const FileUploadPage: React.FC = () => {
-    const theme = useTheme();
     const showAlert = useAlert();
 
     const [isParsing, setIsParsing] = useState<boolean>(false);
@@ -54,6 +53,8 @@ const FileUploadPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
 
     const { generatePdf, isGeneratingPDF } = useOffscreenChartsToPdf();
+
+    const selectedGenLibCount = selectedGenLibMulti.reduce((cnt, val) => val ? cnt + 1 : cnt, 0);
 
     // const { localCalculations } = useAppSettings();
 
@@ -142,12 +143,12 @@ const FileUploadPage: React.FC = () => {
             )));
 
             if (sizeStandardResult.state != 'success') {
-                showAlert(`Ошибка при анализе стандартов длин: ${sizeStandardResult.message}`, 'error');
+                showAlert(`Анализ стандарта длин выполнен с ошибкой: ${sizeStandardResult.message}`, 'error');
                 return;
             }
 
             if (genLibIndices.length === 0) {
-                showAlert(`Анализ стандарта длин успешно выполнен`, 'success');
+                showAlert(`Анализ стандарта длин выполнен успешно`, 'success');
                 return;
             }
 
@@ -169,14 +170,9 @@ const FileUploadPage: React.FC = () => {
                     : sizeStandard
             )))
 
-            for (const res of genLibResults) {
-                if (res.state === 'error') {
-                    showAlert(`Ошибка при анализе геномных библиотек: ${res.message}`, 'error');
-                    return;
-                }
-            }
-
-            showAlert(`Анализ ${genLibIndices.length} ГБ успешно выполнен`, 'success');
+            const errorCount = genLibResults.reduce((cnt, res) => res.state === 'error' ? cnt + 1 : cnt, 0);
+            const state = errorCount === 0 ? 'success' : errorCount < genLibIndices.length ? 'warning' : 'error';
+            showAlert(`Анализ геномных библиотек выполнен - успешно: ${genLibIndices.length - errorCount}, ошибка: ${errorCount}`, state);
         } catch (err) {
             console.error('Analysis error:', err);
             showAlert(`Ошибка при анализе: ${getErrorMessage(err)}`, 'error');
@@ -200,43 +196,41 @@ const FileUploadPage: React.FC = () => {
             setSelectedGenLibMulti={setSelectedGenLibMulti}
             chartHeight={chartHeight}
             isCompactMode
-            leftToolbar={
-                <Button
-                    variant='outlined'
-                    color='inherit'
-                    component='label'
-                    sx={{ ml: 1 }}
-                    disabled={isParsing}
-                >
-                    {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AddTwoTone sx={{ mr: 1 }} />}
-                    Файлы
-                    <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
-                </Button>
-            }
-            rightToolbar={({ selectedSizeStandard, selectedGenLibMulti }) => (
-                <Box sx={{
-                    display: 'flex',
-                    gap: 1,
-                }}>
+            leftToolbar={null}
+            toolbar={({ selectedSizeStandard, selectedGenLibMulti, isSmallScreen }) => (
+                <>
+                    {sizeStandards.length > 0 && <>
+                        <Typography color='textSecondary' sx={{ whiteSpace: 'nowrap', mr: 1 }}>{selectedGenLibCount} ГБ</Typography>
+                        <Button
+                            variant='outlined'
+                            color='secondary'
+                            onClick={() => handleAnalyze(selectedSizeStandard, selectedGenLibMulti)}
+                            disabled={isParsing || isAnalyzing || isGeneratingPDF}
+                        >
+                            {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: isSmallScreen ? 0 : 1 }} /> : <ScienceTwoTone sx={{ mr: isSmallScreen ? 0 : 1 }} />}
+                            {!isSmallScreen && 'Анализ'}
+                        </Button>
+                        <Button
+                            variant='outlined'
+                            color='primary'
+                            onClick={() => handleGeneratePdf(selectedSizeStandard, selectedGenLibMulti)}
+                            disabled={isParsing || isAnalyzing || isGeneratingPDF}
+                        >
+                            {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: isSmallScreen ? 0 : 1 }} /> : <AssessmentTwoTone sx={{ mr: isSmallScreen ? 0 : 1 }} />}
+                            {!isSmallScreen && 'Отчет'}
+                        </Button>
+                    </>}
                     <Button
                         variant='outlined'
-                        color='secondary'
-                        onClick={() => handleAnalyze(selectedSizeStandard, selectedGenLibMulti)}
-                        disabled={isAnalyzing}
+                        color='inherit'
+                        component='label'
+                        disabled={isParsing || isAnalyzing || isGeneratingPDF}
                     >
-                        {isAnalyzing ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <ScienceTwoTone sx={{ mr: 1 }} />}
-                        Анализ
+                        {isParsing ? <CircularProgress color='inherit' size={24} sx={{ mr: isSmallScreen ? 0 : 1 }} /> : <AddTwoTone sx={{ mr: isSmallScreen ? 0 : 1 }} />}
+                        {!isSmallScreen && 'Файлы'}
+                        <input type="file" hidden multiple accept='.frf' onChange={handleFileChange} />
                     </Button>
-                    <Button
-                        variant='outlined'
-                        color='primary'
-                        onClick={() => handleGeneratePdf(selectedSizeStandard, selectedGenLibMulti)}
-                        disabled={isGeneratingPDF}
-                    >
-                        {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: 1 }} /> : <AssessmentTwoTone sx={{ mr: 1 }} />}
-                        Отчет
-                    </Button>
-                </Box>
+                </>
             )}
         />
     );

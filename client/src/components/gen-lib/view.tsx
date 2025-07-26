@@ -25,7 +25,13 @@ const GenLibView: React.FC<Props> = ({
             flexDirection: 'column',
             height: '100%',
         }}>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Box sx={{
+                borderBottom: 1,
+                borderColor: 'divider',
+                display: 'flex',
+                alignItems: 'center',
+                height: '48px',
+            }}>
                 <Tabs
                     value={selectedTab}
                     onChange={(e, value) => setSelectedTab(value)}

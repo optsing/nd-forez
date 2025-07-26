@@ -12,7 +12,13 @@ const TitleAnalyzeState: React.FC<Props> = ({
     state,
 }) => {
     return (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+        }}>
             {!state && <Tooltip title='Анализ не был проведен'>
                 <HelpTwoTone sx={{ mr: 1 }} color='info' />
             </Tooltip>}
