@@ -15,8 +15,8 @@ const GenLibTabAnalyzed: React.FC<Props> = ({
 }) => {
     if (genLib?.state != 'success') {
         return (
-            <Box p={2} height={`${chartHeight + 32}px`} display='flex' alignItems='center' justifyContent='center'>
-                <Typography variant='h5' textAlign='center'>{genLib?.message ?? 'Анализ геномной библиотеки не был проведен'}</Typography>
+            <Box p={2} height='100%' display='flex' padding={2}>
+                <Typography variant='h5' textAlign='center' margin='auto'>{genLib?.message ?? 'Анализ геномной библиотеки не был проведен'}</Typography>
             </Box>
         );
     }

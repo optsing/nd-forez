@@ -18,6 +18,14 @@ const SizeStandardView: React.FC<Props> = ({
     setSelectedTab,
     chartHeight,
 }) => {
+    if (!sizeStandard) {
+        return (
+            <Box p={2} height='100%' display='flex' padding={2}>
+                <Typography variant='h5' textAlign='center' margin='auto'>Выберите стандарт длин для просмотра</Typography>
+            </Box>
+        );
+    }
+
     return (
         <div style={{
             display: 'flex',
@@ -31,7 +39,7 @@ const SizeStandardView: React.FC<Props> = ({
                 alignItems: 'center',
                 height: '48px',
             }}>
-                {sizeStandard && <Tabs
+                <Tabs
                     value={selectedTab}
                     onChange={(e, value) => setSelectedTab(value)}
                     variant='scrollable'
@@ -48,36 +56,31 @@ const SizeStandardView: React.FC<Props> = ({
                         value={2}
                         label='Калибровочная кривая'
                     />
-                </Tabs>}
+                </Tabs>
             </Box>
-            {sizeStandard
-                ? <div style={{
-                    height: '100%',
-                    overflowY: 'auto',
-                }}>
-                    {selectedTab === 0 &&
-                        <SizeStandardTabRaw
-                            sizeStandard={sizeStandard.parsed}
-                            chartHeight={chartHeight}
-                        />
-                    }
-                    {selectedTab === 1 &&
-                        <SizeStandardTabAnalyzed
-                            sizeStandard={sizeStandard.analyzed}
-                            chartHeight={chartHeight}
-                        />
-                    }
-                    {selectedTab === 2 &&
-                        <SizeStandardTabAnalyzedCurve
-                            sizeStandard={sizeStandard.analyzed}
-                            chartHeight={chartHeight}
-                        />
-                    }
-                </div>
-                : <Box p={2} height={`${chartHeight + 32}px`} display='flex' alignItems='center' justifyContent='center'>
-                    <Typography variant='h5' textAlign='center'>Выберите стандарт длин для просмотра</Typography>
-                </Box>
-            }
+            <div style={{
+                height: '100%',
+                overflowY: 'auto',
+            }}>
+                {selectedTab === 0 &&
+                    <SizeStandardTabRaw
+                        sizeStandard={sizeStandard.parsed}
+                        chartHeight={chartHeight}
+                    />
+                }
+                {selectedTab === 1 &&
+                    <SizeStandardTabAnalyzed
+                        sizeStandard={sizeStandard.analyzed}
+                        chartHeight={chartHeight}
+                    />
+                }
+                {selectedTab === 2 &&
+                    <SizeStandardTabAnalyzedCurve
+                        sizeStandard={sizeStandard.analyzed}
+                        chartHeight={chartHeight}
+                    />
+                }
+            </div>
         </div>
     )
 }

@@ -1,4 +1,4 @@
-import { List, ListItemButton } from "@mui/material";
+import { Box, List, ListItemButton, Typography } from "@mui/material";
 import TitleAnalyzeState from "../title-analyze-state";
 import { SizeStandardComplete } from "../../models/client";
 
@@ -14,6 +14,14 @@ const SizeStandardSidebar: React.FC<Props> = ({
     selected,
     setSelected,
 }) => {
+    if (sizeStandards.length === 0) {
+        return (
+            <Box sx={{ display: 'flex', height: '100%', p: 2 }}>
+                <Typography sx={{ m: 'auto', textAlign: 'center' }}>Нет открытых стандартов длин</Typography>
+            </Box>
+        );
+    }
+
     return (
         <List>
             {sizeStandards.map((sizeStandard, i) => (

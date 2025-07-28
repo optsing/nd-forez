@@ -1,4 +1,4 @@
-import { Checkbox, List, ListItem, ListItemButton } from "@mui/material";
+import { Box, Checkbox, List, ListItem, ListItemButton, Typography } from "@mui/material";
 import TitleAnalyzeState from "../title-analyze-state";
 import { SizeStandardComplete } from "../../models/client";
 import { SsidChartTwoTone } from "@mui/icons-material";
@@ -23,6 +23,14 @@ const GenLibSidebar: React.FC<Props> = ({
     selectedMulti,
     setSelectedMulti,
 }) => {
+    if (genLibs.length === 0) {
+        return (
+            <Box sx={{ display: 'flex', height: '100%', p: 2 }}>
+                <Typography sx={{ m: 'auto', textAlign: 'center' }}>Нет открытых геномных библиотек</Typography>
+            </Box>
+        );
+    }
+
     const handleSelectAll = (e: ChangeEvent<HTMLInputElement>) => {
         const checked = e.target.checked;
         setSelectedMulti(new Array(genLibs.length).fill(checked));
@@ -34,7 +42,7 @@ const GenLibSidebar: React.FC<Props> = ({
 
     return (
         <List>
-            {genLibs.length > 0 && <ListItem
+            <ListItem
                 disablePadding
                 secondaryAction={
                     <Checkbox
@@ -50,7 +58,7 @@ const GenLibSidebar: React.FC<Props> = ({
                     <SsidChartTwoTone sx={{ mr: 1 }} />
                     Все библиотеки
                 </ListItemButton>
-            </ListItem>}
+            </ListItem>
             {genLibs.map((g, i) => (
                 <ListItem
                     key={i}

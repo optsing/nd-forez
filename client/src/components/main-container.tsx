@@ -1,9 +1,11 @@
 import { ReactNode, useEffect, useMemo, useState } from 'react';
 import {
+    Badge,
     Box,
     Button,
     IconButton,
     Tooltip,
+    Typography,
     useMediaQuery,
     useTheme,
 } from '@mui/material';
@@ -137,35 +139,49 @@ const MainContainer: React.FC<Props> = ({
                     width: '100%',
                     height: '48px'
                 }}>
-                    {!isStandardSidebarOpen && <Tooltip title='Показать список стандартов длин'>
+                    {!isSmallScreen && !isStandardSidebarOpen && <Tooltip title='Показать список стандартов длин'>
                         <IconButton
                             onClick={() => handleIsStadardSidebarOpen(true)}>
-                            <MenuTwoTone />
+                            <Badge
+                                badgeContent={<Typography color='textSecondary' fontWeight={700}>СД</Typography>}
+                                overlap='circular'
+                                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                            >
+                                <MenuTwoTone />
+                            </Badge>
                         </IconButton>
                     </Tooltip>}
-                    {!isGenLibSidebarOpen && <Tooltip title='Показать список геномных библиотек'>
+                    {!isSmallScreen && !isGenLibSidebarOpen && <Tooltip title='Показать список геномных библиотек'>
                         <IconButton
                             onClick={() => handleIsGenLibSidebarOpen(true)}>
-                            <MenuTwoTone />
+                            <Badge
+                                badgeContent={<Typography color='textSecondary' fontWeight={700}>ГБ</Typography>}
+                                overlap='circular'
+                                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                            >
+                                <MenuTwoTone />
+                            </Badge>
                         </IconButton>
                     </Tooltip>}
-                    {sizeStandards.length > 0 && <Button
-                        onClick={() => setSelectedGenLib(-2)}
-                        sx={{ textTransform: 'none' }}
-                    >
-                        <TitleAnalyzeState
-                            title={sizeStandards[selectedSizeStandard].parsed.description.title}
-                            state={sizeStandards[selectedSizeStandard].analyzed}
-                        />
-                    </Button>}
-                    {sizeStandards.length > 0 && selectedGenLib >= -1 && <ChevronRightTwoTone />}
-                    {selectedGenLib === -1 && <>
-                        <SsidChartTwoTone /> Все библиотеки
-                    </>}
-                    {selectedGenLib >= 0 && <TitleAnalyzeState
-                        title={genLibs[selectedGenLib].description.title}
-                        state={sizeStandards[selectedSizeStandard]?.analyzedGenLibs.get(selectedGenLib) ?? null}
-                    />}
+                    <Box display='flex' alignItems='center' overflow='hidden'>
+                        {sizeStandards.length > 0 && <Button
+                            onClick={() => setSelectedGenLib(-2)}
+                            sx={{ textTransform: 'none' }}
+                        >
+                            <TitleAnalyzeState
+                                title={sizeStandards[selectedSizeStandard].parsed.description.title}
+                                state={sizeStandards[selectedSizeStandard].analyzed}
+                            />
+                        </Button>}
+                        {sizeStandards.length > 0 && selectedGenLib >= -1 && <ChevronRightTwoTone sx={{ mx: 1 }} />}
+                        {selectedGenLib === -1 && <>
+                            <SsidChartTwoTone sx={{ mr: 1 }} /> Все библиотеки
+                        </>}
+                        {selectedGenLib >= 0 && <TitleAnalyzeState
+                            title={genLibs[selectedGenLib].description.title}
+                            state={sizeStandards[selectedSizeStandard]?.analyzedGenLibs.get(selectedGenLib) ?? null}
+                        />}
+                    </Box>
                     {!isSmallScreen && <Box sx={{
                         display: 'flex',
                         gap: 1,
@@ -209,9 +225,39 @@ const MainContainer: React.FC<Props> = ({
                     gap: 1,
                     width: '100%',
                     height: '48px',
-                    justifyContent: 'end',
                 }}>
-                    {toolbar({ selectedSizeStandard, selectedGenLibMulti, isSmallScreen })}
+                    {!isStandardSidebarOpen && <Tooltip title='Показать список стандартов длин'>
+                        <IconButton
+                            onClick={() => handleIsStadardSidebarOpen(true)}>
+                            <Badge
+                                badgeContent={<Typography color='textSecondary' fontWeight={700}>СД</Typography>}
+                                overlap='circular'
+                                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                            >
+                                <MenuTwoTone />
+                            </Badge>
+                        </IconButton>
+                    </Tooltip>}
+                    {!isGenLibSidebarOpen && <Tooltip title='Показать список геномных библиотек'>
+                        <IconButton
+                            onClick={() => handleIsGenLibSidebarOpen(true)}>
+                            <Badge
+                                badgeContent={<Typography color='textSecondary' fontWeight={700}>ГБ</Typography>}
+                                overlap='circular'
+                                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                            >
+                                <MenuTwoTone />
+                            </Badge>
+                        </IconButton>
+                    </Tooltip>}
+                    <Box sx={{
+                        display: 'flex',
+                        gap: 1,
+                        alignItems: 'center',
+                        ml: 'auto',
+                    }}>
+                        {toolbar({ selectedSizeStandard, selectedGenLibMulti, isSmallScreen })}
+                    </Box>
                 </Box>}
             </Box>
         </SidebarContainer>

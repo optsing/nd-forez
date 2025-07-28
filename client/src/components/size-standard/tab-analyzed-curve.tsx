@@ -15,8 +15,8 @@ const SizeStandardTabAnalyzedCurve: React.FC<Props> = ({
 }) => {
     if (sizeStandard?.state != 'success') {
         return (
-            <Box p={2} height={`${chartHeight + 32}px`} display='flex' alignItems='center' justifyContent='center'>
-                <Typography variant='h5' textAlign='center'>{sizeStandard?.message ?? 'Анализ стандарта длин не был проведен'}</Typography>
+            <Box p={2} height='100%' display='flex' padding={2}>
+                <Typography variant='h5' textAlign='center' margin='auto'>{sizeStandard?.message ?? 'Анализ стандарта длин не был проведен'}</Typography>
             </Box>
         );
     }
