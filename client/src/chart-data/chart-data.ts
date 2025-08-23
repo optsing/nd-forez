@@ -96,7 +96,7 @@ export function prepareGenLibAnalyzed(genLib: GenLibAnalyzeResult): DatasetWithA
     if (genLib.st_peaks.length > 0) {
         result.push({
             title: 'Реперные пики',
-            color: 'secondary',
+            color: 'tertiary',
             type: 'point',
             pointStyle: 'crossRot',
             points: genLib.st_peaks.map((x, i) => ({ x, y: genLib.denoised_data[genLib.st_length[i]] * 1e-6 })),
@@ -185,11 +185,11 @@ export function prepareStandardAnalyzedTable(sizeStandard: SizeStandardAnalyzeRe
     const rows: string[][] = [];
     for (let i = 0; i < sizeStandard.peaks.sizes.length; i++) {
         rows.push([
-            round(sizeStandard.peaks.sizes[i]).toString(),
-            round(sizeStandard.peaks.concentrations[i]).toString(),
-            round(sizeStandard.SD_molarity[i]).toString(),
+            round(sizeStandard.peaks.sizes[i], 0).toString(),
+            round(sizeStandard.peaks.concentrations[i], 4).toString(),
+            round(sizeStandard.SD_molarity[i], 4).toString(),
             round(sizeStandard.peaks.data[i]).toString(),
-            round(sizeStandard.led_area[i] * 1e-7).toString(),
+            round(sizeStandard.led_area[i] * 1e-7, 4).toString(),
         ]);
     }
     return {
@@ -210,11 +210,11 @@ export function prepareGenLibAnalyzedTable(genLib: GenLibAnalyzeResult): SimpleT
     const rows: string[][] = [];
     for (let i = 0; i < genLib.peaksCorr.length; i++) {
         rows.push([
-            round(genLib.peaksCorr[i]).toString(),
-            round(genLib.areaCorr[i]).toString(),
-            round(genLib.molarity[i]).toString(),
+            round(genLib.peaksCorr[i], 0).toString(),
+            round(genLib.areaCorr[i], 4).toString(),
+            round(genLib.molarity[i], 4).toString(),
             round(genLib.library_peaks[i]).toString(),
-            round(genLib.GLAreas[i] * 1e-7).toString(),
+            round(genLib.GLAreas[i] * 1e-7, 4).toString(),
         ]);
     }
     return {
@@ -235,11 +235,11 @@ export function prepareGenLibAnalyzedTotalTable(genLib: GenLibAnalyzeResult): Si
             'Площадь геномной библиотеки * 10⁷',
         ],
         rows: [[
-            round(genLib.maxLibPeak).toString(),
-            round(genLib.totalLibConc).toString(),
-            round(genLib.totalLibMolarity).toString(),
+            round(genLib.maxLibPeak, 0).toString(),
+            round(genLib.totalLibConc, 4).toString(),
+            round(genLib.totalLibMolarity, 4).toString(),
             round(genLib.maxLibValue).toString(),
-            round(genLib.totalLibArea * 1e-7).toString(),
+            round(genLib.totalLibArea * 1e-7, 4).toString(),
         ]],
     };
 }

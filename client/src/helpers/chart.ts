@@ -6,7 +6,7 @@ import { buildChromatogram } from "./chromatogram";
 
 type BaseDataset = {
     title: string;
-    color?: 'primary' | 'secondary';
+    color?: 'primary' | 'secondary' | 'tertiary';
     points: Point[];
     showChromatogram?: boolean;
 }
@@ -246,7 +246,12 @@ export function prepareDataAndAnnotations(datasets: DatasetWithAnnotations[], ch
     const chromatogram: number[] = [];
     for (let i = 0; i < datasets.length; i++) {
         const dataset = datasets[i];
-        const color = dataset.color === 'secondary' ? chartColors.secondary : chartColors.primary;
+        let color = chartColors.primary;
+        if (dataset.color === 'secondary') {
+            color = chartColors.secondary;
+        } else if (dataset.color === 'tertiary') {
+            color = chartColors.tertiary;
+        }
         if (dataset.type === 'point') {
             data.push(
                 createPointDataset(dataset.title, dataset.points, color, dataset.pointStyle)

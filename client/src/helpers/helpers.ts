@@ -1,5 +1,6 @@
-export function round(num: number) {
-  return Math.round(num * 100) / 100;
+export function round(num: number, decimals: number = 2) {
+  const d = 10 ** decimals;
+  return Math.round(num * d) / d;
 }
 
 export function getTimestampFilename(now: Date, prefix = 'report') {

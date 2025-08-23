@@ -217,7 +217,7 @@ const FileUploadPage: React.FC = () => {
                             disabled={isParsing || isAnalyzing || isGeneratingPDF}
                         >
                             {isGeneratingPDF ? <CircularProgress color='inherit' size={24} sx={{ mr: isSmallScreen ? 0 : 1 }} /> : <AssessmentTwoTone sx={{ mr: isSmallScreen ? 0 : 1 }} />}
-                            {!isSmallScreen && 'Отчет'}
+                            {!isSmallScreen && 'Создать отчет'}
                         </Button>
                     </>}
                     <Button

@@ -6,10 +6,10 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard-no-fastapi-cloud-cli]>=0.116.1",
-    "numpy>=2.3.1",
+    "numpy>=2.3.2",
     "pydantic>=2.11.7",
-    "pywavelets>=1.8.0",
-    "scipy>=1.16.0",
+    "pywavelets>=1.9.0",
+    "scipy>=1.16.1",
     "sqlmodel>=0.0.24",
     "uvicorn>=0.35.0",
 ]
