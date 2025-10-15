@@ -18,9 +18,9 @@ app.add_middleware(
 )
 
 app.mount('/api', apiRoute)
-app.mount('/assets', StaticFiles(directory='assets', html=True))
+app.mount('/assets', StaticFiles(directory='public/assets', html=True))
 
 
 @app.get('/{full_path:path}')
 def index() -> FileResponse:
-    return FileResponse('index.html')
+    return FileResponse('public/index.html')

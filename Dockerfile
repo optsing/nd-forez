@@ -28,8 +28,8 @@ FROM python:3.13.8-alpine
 WORKDIR /app
 
 COPY --from=builder-server /opt/venv /opt/venv
-COPY --from=builder-client /app/dist/assets ./assets
-COPY --from=builder-client /app/dist/index.html .
+COPY --from=builder-client /app/dist/index.html ./public/
+COPY --from=builder-client /app/dist/assets ./public/assets
 COPY ./server/src .
 
 EXPOSE 80

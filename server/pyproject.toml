@@ -15,7 +15,10 @@ dependencies = [
 ]
 
 [dependency-groups]
-dev = []
+dev = [
+    "pyinstaller>=6.16.0",
+    "pywebview>=6.0",
+]
 
 [tool.setuptools]
 packages = ["lib", "models"]
