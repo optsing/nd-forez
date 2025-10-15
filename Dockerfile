@@ -1,4 +1,4 @@
-FROM python:3.13.8-alpine AS builder-server
+FROM python:3.13.9-alpine AS builder-server
 WORKDIR /app
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -24,7 +24,7 @@ RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
 
-FROM python:3.13.8-alpine
+FROM python:3.13.9-alpine
 WORKDIR /app
 
 COPY --from=builder-server /opt/venv /opt/venv

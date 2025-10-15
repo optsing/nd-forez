@@ -1,25 +1,28 @@
 @echo off
+setlocal enabledelayedexpansion
 echo Building the project...
 
 REM Navigate to server directory and build the executable
-cd server
+pushd server
+call uv sync --locked
 call uv run pyinstaller --onefile --noconsole --specpath build_specs --name nd-forez-app src/run.py
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo PyInstaller build failed!
-    exit /b %ERRORLEVEL%
+    popd
+    exit /b 1
 )
-REM Return to project root
-cd ..
+popd
 
 REM Navigate to client directory and build the frontend
-cd client
+pushd client
+call pnpm install --frozen-lockfile
 call pnpm build
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Frontend build failed!
-    exit /b %ERRORLEVEL%
+    popd
+    exit /b 1
 )
-REM Return to project root
-cd ..
+popd
 
 REM Create release directory
 if exist releases\Windows rmdir /s /q releases\Windows
@@ -27,19 +30,20 @@ mkdir releases\Windows
 
 REM Copy the executable
 copy server\dist\nd-forez-app.exe releases\Windows\
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Failed to copy executable!
-    exit /b %ERRORLEVEL%
+    exit /b 1
 )
 
 REM Copy frontend build contents (index.html and assets) to public directory
 xcopy /E /I client\dist\* releases\Windows\public\
-if %ERRORLEVEL% NEQ 0 (
+if errorlevel 1 (
     echo Failed to copy frontend assets!
-    exit /b %ERRORLEVEL%
+    exit /b 1
 )
 
 REM Create empty database folder
 mkdir releases\Windows\database
 
 echo Build complete! Check the 'releases\Windows' directory for the executable and assets.
+exit /b 0

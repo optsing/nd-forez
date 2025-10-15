@@ -91,6 +91,17 @@ Run the container:
 docker run -p 8000:80 nd-forez
 ```
 
+---
+
+## 🪟 Windows App
+
+### Build Windows app
+
+Run BuildWindowsApp.bat
+
+```bash
+.\BuildWindowsApp.bat
+```
 
 ## 📄 License
 
