@@ -30,7 +30,7 @@ export default defineConfig(({ mode }) => {
     base: env.VITE_BASE || '/',
     plugins: [
       react(),
-      viteStaticCopyPyodide(),
+      // viteStaticCopyPyodide(),
     ],
     optimizeDeps: { exclude: ['pyodide'] },
     worker: {

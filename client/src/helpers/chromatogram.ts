@@ -1,4 +1,5 @@
-import type { Chart, ChartTypeRegistry, Plugin, Point } from 'chart.js';
+import type { Chart, ChartTypeRegistry, Plugin } from 'chart.js';
+import { ChartPoint } from './chart';
 
 
 declare module 'chart.js' {
@@ -15,7 +16,7 @@ type ChromatogramPluginOptions = {
 };
 
 
-export function buildChromatogram(data: Point[], ): number[] {
+export function buildChromatogram(data: ChartPoint[], ): number[] {
     let maxValue = -Infinity;
     for (const p of data) {
         if (p.y > maxValue) {

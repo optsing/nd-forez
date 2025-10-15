@@ -4,10 +4,16 @@ import { round } from "./helpers";
 import { useColorScheme, useMediaQuery } from "@mui/material";
 import { buildChromatogram } from "./chromatogram";
 
+
+export type ChartPoint = {
+    x: number;
+    y: number;
+}
+
 type BaseDataset = {
     title: string;
     color?: 'primary' | 'secondary' | 'tertiary';
-    points: Point[];
+    points: ChartPoint[];
     showChromatogram?: boolean;
 }
 
@@ -97,6 +103,7 @@ export function createChartOptions(chartColors: ChartColors, { yTitle, annotatio
     return {
         responsive: true,
         normalized: true,
+        parsing: false,
         maintainAspectRatio: false,
         animation: disableAnimation ? false : undefined,
         layout: {
@@ -172,7 +179,7 @@ export function createChartOptions(chartColors: ChartColors, { yTitle, annotatio
 }
 
 
-export function createVerticalLines(datasetIndex: number, points: Point[], titles: number[], chartColors: ChartColors, datasetColors: ChartDatasetColors): AnnotationOptions[] {
+export function createVerticalLines(datasetIndex: number, points: ChartPoint[], titles: number[], chartColors: ChartColors, datasetColors: ChartDatasetColors): AnnotationOptions[] {
     const result: AnnotationOptions[] = [];
     for (let i = 0; i < points.length; i++) {
         const p = points[i];
@@ -199,7 +206,7 @@ export function createVerticalLines(datasetIndex: number, points: Point[], title
     return result;
 }
 
-export function createLineDataset(title: string, points: Point[], datasetColors: ChartDatasetColors): ChartDataset<'line'> {
+export function createLineDataset(title: string, points: ChartPoint[], datasetColors: ChartDatasetColors): ChartDataset<'line'> {
     return {
         label: title,
         data: points,
@@ -212,7 +219,7 @@ export function createLineDataset(title: string, points: Point[], datasetColors:
     }
 }
 
-export function createPointDataset(title: string, points: Point[], datasetColors: ChartDatasetColors, pointStyle: PointStyle = 'circle'): ChartDataset<'line'> {
+export function createPointDataset(title: string, points: ChartPoint[], datasetColors: ChartDatasetColors, pointStyle: PointStyle = 'circle'): ChartDataset<'line'> {
     return {
         label: title,
         data: points,
@@ -227,7 +234,7 @@ export function createPointDataset(title: string, points: Point[], datasetColors
     }
 }
 
-export function createFilledDataset(title: string, points: Point[], datasetColors: ChartDatasetColors): ChartDataset<'line'> {
+export function createFilledDataset(title: string, points: ChartPoint[], datasetColors: ChartDatasetColors): ChartDataset<'line'> {
     return {
         label: title,
         data: points,
