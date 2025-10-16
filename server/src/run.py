@@ -16,6 +16,7 @@ def main() -> None:
     server_thread.start()
 
     last_state = load_window_state()
+    webview.settings['ALLOW_DOWNLOADS'] = True
     window = webview.create_window(
         "ND Forez",
         f"http://127.0.0.1:{PORT}",

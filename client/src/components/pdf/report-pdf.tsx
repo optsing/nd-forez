@@ -1,13 +1,18 @@
+import { Fragment } from 'react';
 import { Page, Text, Document, StyleSheet, Image, View, Font } from '@react-pdf/renderer';
 import robotoSrc from '../../assets/Roboto-Regular.ttf'
 import { SizeStandardPdf } from '../../helpers/pdf';
 import ReportTable from './report-table';
 
 
+// Fix 'Buffer is not defined' warning for react-pdf
+import { Buffer } from 'buffer';
+(globalThis as any).Buffer = Buffer;
+
 Font.register({
     family: 'Roboto',
     src: robotoSrc,
-})
+});
 
 const styles = StyleSheet.create({
     page: { padding: 40, fontSize: 12, fontFamily: 'Roboto' },
@@ -35,8 +40,8 @@ const ReportPdf: React.FC<Props> = ({
                     <Text>Дата: {reportDate.toLocaleString('ru-RU')}</Text>
                 </View>
             </Page>
-            {sizeStandards.map(sizeStandard => (
-                <>
+            {sizeStandards.map((sizeStandard, i) => (
+                <Fragment key={i}>
                     <Page size="A4" style={styles.page}>
                         <Text style={styles.title}>Стандарт длин - {sizeStandard.title}</Text>
                         <View style={styles.section}>
@@ -71,7 +76,7 @@ const ReportPdf: React.FC<Props> = ({
                             </Page>
                         ))
                     }
-                </>))}
+                </Fragment>))}
         </Document>
     );
 }

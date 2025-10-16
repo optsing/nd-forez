@@ -32,7 +32,9 @@ export default defineConfig(({ mode }) => {
       react(),
       // viteStaticCopyPyodide(),
     ],
-    optimizeDeps: { exclude: ['pyodide'] },
+    optimizeDeps: {
+      exclude: ['pyodide'],
+    },
     worker: {
       format: 'es',
     }
