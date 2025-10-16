@@ -5,7 +5,7 @@ echo Building the project...
 REM Navigate to server directory and build the executable
 pushd server
 call uv sync --locked
-call uv run pyinstaller --onefile --noconsole --specpath build_specs --name nd-forez-app src/run.py
+call uv run pyinstaller --onefile --noconsole --specpath build_specs --name nd-forez-app --icon ../assets/icon.ico src/run.py
 if errorlevel 1 (
     echo PyInstaller build failed!
     popd
