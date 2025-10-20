@@ -93,14 +93,16 @@ docker run -p 8000:80 nd-forez
 
 ---
 
-## 🪟 Windows App
+## 🖥️ Cross-Platform Desktop App
 
-### Build Windows app
+### Build desktop release (Windows / macOS / Linux)
 
-Run BuildWindowsApp.bat
+You can build the full desktop release — including the FastAPI backend (compiled with PyInstaller) and the React frontend — using the provided **Python build script**.
+
+From the project root:
 
 ```bash
-.\BuildWindowsApp.bat
+python build.py
 ```
 
 ## 📄 License
