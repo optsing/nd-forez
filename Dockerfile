@@ -11,7 +11,7 @@ RUN uv venv
 RUN uv sync --locked --no-install-project --no-dev
 
 
-FROM node:22.20-alpine AS builder-client
+FROM node:24.11.1-alpine AS builder-client
 WORKDIR /app
 
 COPY ./client .
