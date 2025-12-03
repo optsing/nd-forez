@@ -1,6 +1,6 @@
-import os
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from api import apiRoute
@@ -18,10 +18,7 @@ app.add_middleware(
 )
 
 app.mount('/api', apiRoute)
-
-if os.getenv("WEBVIEW_MODE") != "1":
-    from fastapi.staticfiles import StaticFiles
-    app.mount('/assets', StaticFiles(directory='public/assets', html=True))
+app.mount('/assets', StaticFiles(directory='public/assets', html=True))
 
 
 @app.get('/{full_path:path}')

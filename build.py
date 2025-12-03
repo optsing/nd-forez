@@ -41,7 +41,7 @@ def main():
     run(["uv", "sync", "--locked"], cwd=server_dir)
     run([
         "uv", "run", "pyinstaller",
-        "--noconfirm", "--noconsole",
+        "--onefile", "--noconsole",
         "--specpath", "build_specs",
         "--name", "nd-forez-app",
         "--icon", str(server_dir / "assets" / "icon.ico"),
@@ -51,7 +51,7 @@ def main():
     # === Build client ===
     print("\n🧱 Building client...")
     run(["pnpm", "install", "--frozen-lockfile"], cwd=client_dir)
-    run(["pnpm", "build:app"], cwd=client_dir)
+    run(["pnpm", "build"], cwd=client_dir)
 
     # === Prepare release directory ===
     print(f"\n📂 Preparing release directory: {release_dir}")
@@ -60,7 +60,7 @@ def main():
     safe_mkdir(release_dir / "database")
 
     # === Copy server build ===
-    copytree(server_dir / "dist" / "nd-forez-app", release_dir)
+    copytree(server_dir / "dist", release_dir)
 
     # === Copy client build ===
     copytree(client_dir / "dist", release_dir / "public")
