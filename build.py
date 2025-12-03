@@ -25,9 +25,7 @@ def safe_mkdir(path: Path):
 
 
 def copytree(src: Path, dst: Path):
-    if dst.exists():
-        shutil.rmtree(dst)
-    shutil.copytree(src, dst)
+    shutil.copytree(src, dst, dirs_exist_ok=True)
 
 
 def main():
@@ -43,7 +41,7 @@ def main():
     run(["uv", "sync", "--locked"], cwd=server_dir)
     run([
         "uv", "run", "pyinstaller",
-        "--onefile", "--noconsole",
+        "--noconfirm", "--noconsole",
         "--specpath", "build_specs",
         "--name", "nd-forez-app",
         "--icon", str(server_dir / "assets" / "icon.ico"),
@@ -53,7 +51,7 @@ def main():
     # === Build client ===
     print("\n🧱 Building client...")
     run(["pnpm", "install", "--frozen-lockfile"], cwd=client_dir)
-    run(["pnpm", "build"], cwd=client_dir)
+    run(["pnpm", "build:app"], cwd=client_dir)
 
     # === Prepare release directory ===
     print(f"\n📂 Preparing release directory: {release_dir}")
@@ -61,12 +59,8 @@ def main():
     safe_mkdir(release_dir / "public")
     safe_mkdir(release_dir / "database")
 
-    # === Copy server executable ===
-    if platform.system() == "Windows":
-        exe_name = "nd-forez-app.exe"
-    else:
-        exe_name = "nd-forez-app"
-    shutil.copy(server_dir / "dist" / exe_name, release_dir / exe_name)
+    # === Copy server build ===
+    copytree(server_dir / "dist" / "nd-forez-app", release_dir)
 
     # === Copy client build ===
     copytree(client_dir / "dist", release_dir / "public")

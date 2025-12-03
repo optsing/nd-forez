@@ -1,8 +1,11 @@
-import threading
-import webview
-import uvicorn
-from main import app
-from window_state import WindowState, rect_from_window, load_window_state, save_window_state
+import os
+os.environ["WEBVIEW_MODE"] = "1"
+
+import threading  # noqa: E402
+import webview  # noqa: E402
+import uvicorn  # noqa: E402
+from main import app  # noqa: E402
+from window_state import WindowState, rect_from_window, load_window_state, save_window_state  # noqa: E402
 
 PORT: int = 48123
 
@@ -19,7 +22,7 @@ def main() -> None:
     webview.settings['ALLOW_DOWNLOADS'] = True
     window = webview.create_window(
         "ND Forez",
-        f"http://127.0.0.1:{PORT}",
+        '../public/index.html',  # f"http://127.0.0.1:{PORT}",
         x=last_state.x,
         y=last_state.y,
         width=last_state.width,
@@ -62,7 +65,7 @@ def main() -> None:
         window.events.restored += on_restored
         window.events.closing += on_window_closing
 
-        webview.start()
+        webview.start(debug=False)
 
 
 if __name__ == "__main__":
