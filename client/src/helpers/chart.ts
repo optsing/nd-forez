@@ -108,7 +108,7 @@ export function createChartOptions(chartColors: ChartColors, { yTitle, annotatio
         animation: disableAnimation ? false : undefined,
         layout: {
             padding: {
-                right: chromatogram.length > 0 ? 40 : 0,
+                right: chromatogram.length > 0 ? 56 : 0,
             }
         },
         scales: {
@@ -172,7 +172,7 @@ export function createChartOptions(chartColors: ChartColors, { yTitle, annotatio
             chromatogram: {
                 data: chromatogram,
                 maxGray: 245,
-                width: 40,
+                width: 56,
             },
         },
     };

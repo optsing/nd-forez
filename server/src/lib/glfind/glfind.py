@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Literal
 import numpy as np
 from numpy.typing import NDArray
 from lib.glfind.classify_and_extract_library_peaks import classify_and_extract_library_peaks
@@ -7,6 +8,7 @@ from lib.glfind.compute_smooth_library_concentrations import compute_smooth_libr
 from lib.glfind.filter_isolated_peaks import filter_isolated_peaks
 from lib.glfind.select_reference_peaks import select_reference_peaks
 from lib.glfind.find_significant_peaks import find_significant_peaks
+from lib.glfind.find_significant_peaks2 import find_significant_peaks2
 from lib.glfind.find_signal_minima import find_signal_minima
 from lib.glfind.handle_smooth_library_case import handle_smooth_library_case
 from lib.glfind.refine_library_peaks import refine_library_peaks
@@ -53,6 +55,7 @@ def glfind(
     standard_peaks: NDArray[np.integer],
     standard_sizes: NDArray[np.floating],
     standard_conc: NDArray[np.floating],
+    find_peak_version: Literal[1, 2] = 2,
 ) -> GLFindResult:
     # 1. Выбор первых 50 значений как шума
     noise = raw_signal[:50]
@@ -61,29 +64,37 @@ def glfind(
     x = np.arange(len(raw_signal))
     corrected_signal = msbackadj(x, denoised_signal, window_size=140, step_size=300, quantile_value=0.05)  # коррекция бейзлайна
 
-    significant_peak_candidates = find_significant_peaks(corrected_signal)
+    if find_peak_version == 2:
+        significant_peaks, pre_unrecognized_peaks, reference_peaks = find_significant_peaks2(corrected_signal, standard_peaks)
+        if len(significant_peaks) == 0:
+            raise ValueError('Пики геномной библиотеки не были найдены')
+        if len(reference_peaks) != 2:
+            # TODO Добавить выбор реперных пиков
+            # Мы обрабатывает несколько генных библиотек в одном анализе и для каждой может потребоваться свой выбор
+            raise ValueError('Реперные пики не найдены.')
+    else:
+        significant_peak_candidates = find_significant_peaks(corrected_signal)
 
-    if len(significant_peak_candidates) == 0:
-        raise ValueError('Пики геномной библиотеки не были найдены')
+        if len(significant_peak_candidates) == 0:
+            raise ValueError('Пики геномной библиотеки не были найдены')
 
-    isolated_peaks_candidates, significant_peaks = select_isolated_peaks(significant_peak_candidates, corrected_signal)
+        isolated_peaks_candidates, significant_peaks = select_isolated_peaks(significant_peak_candidates, corrected_signal)
 
-    isolated_peaks = filter_isolated_peaks(isolated_peaks_candidates, significant_peaks, corrected_signal)
+        isolated_peaks = filter_isolated_peaks(isolated_peaks_candidates, significant_peaks, corrected_signal)
 
-    # Вычисление pace
-    pace: np.int64 = standard_peaks[-1] - standard_peaks[0]
-    reference_peaks, pre_unrecognized_peaks = select_reference_peaks(isolated_peaks, pace, corrected_signal)
+        # Вычисление pace
+        pace: np.int64 = standard_peaks[-1] - standard_peaks[0]
+        reference_peaks, pre_unrecognized_peaks = select_reference_peaks(isolated_peaks, pace, corrected_signal)
 
-    if len(reference_peaks) != 2:
-        # TODO Добавить выбор реперных пиков
-        # Мы обрабатывает несколько генных библиотек в одном анализе и для каждой может потребоваться свой выбор
-        raise ValueError('Реперные пики не найдены.')
+        if len(reference_peaks) != 2:
+            # TODO Добавить выбор реперных пиков
+            # Мы обрабатывает несколько генных библиотек в одном анализе и для каждой может потребоваться свой выбор
+            raise ValueError('Реперные пики не найдены.')
 
-    # Удаляем пики, которые лежат за пределами реперов
-    significant_peaks = significant_peaks[(significant_peaks >= reference_peaks[0]) & (significant_peaks <= reference_peaks[-1])]
+        # Удаляем пики, которые лежат за пределами реперов
+        significant_peaks = significant_peaks[(significant_peaks >= reference_peaks[0]) & (significant_peaks <= reference_peaks[-1])]
 
     minima_candidates, all_local_minimums = find_signal_minima(corrected_signal)
-
     complete_peaks_locations = refine_minima_near_reference_peaks(minima_candidates, reference_peaks, pre_unrecognized_peaks, corrected_signal)
 
     # 4. Калибровка данных
